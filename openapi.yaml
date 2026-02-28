@@ -1,0 +1,1298 @@
+openapi: 3.1.0
+info:
+  title: Vehicle Quoting API
+  description: >
+    Automotive dealership vehicle quoting system. Sales staff configure and price
+    vehicle quotes for customers, including option compatibility enforcement,
+    package pricing, and manufacturer incentive programs.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Vehicles
+    description: Vehicle models and trim levels
+  - name: Options
+    description: Vehicle options and option categories
+  - name: Quotes
+    description: Quote creation, configuration, pricing, and lifecycle
+  - name: Incentive Programs
+    description: Manufacturer incentive programs, rules, and benefits
+
+paths:
+  # ── Vehicles ────────────────────────────────────────────────────────────────
+
+  /vehicles:
+    post:
+      operationId: createVehicle
+      tags: [Vehicles]
+      summary: Create a vehicle model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVehicleRequest"
+      responses:
+        "201":
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    get:
+      operationId: listVehicles
+      tags: [Vehicles]
+      summary: List all vehicle models
+      responses:
+        "200":
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+
+  /vehicles/{id}:
+    get:
+      operationId: getVehicle
+      tags: [Vehicles]
+      summary: Get a vehicle model by ID
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Vehicle details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /vehicles/{vehicleId}/trims:
+    post:
+      operationId: createTrim
+      tags: [Vehicles]
+      summary: Create a trim level for a vehicle
+      parameters:
+        - $ref: "#/components/parameters/VehicleId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrimRequest"
+      responses:
+        "201":
+          description: Trim created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trim"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    get:
+      operationId: listTrims
+      tags: [Vehicles]
+      summary: List trim levels for a vehicle
+      parameters:
+        - $ref: "#/components/parameters/VehicleId"
+      responses:
+        "200":
+          description: List of trims
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trim"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Options ─────────────────────────────────────────────────────────────────
+
+  /option-categories:
+    post:
+      operationId: createOptionCategory
+      tags: [Options]
+      summary: Create an option category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOptionCategoryRequest"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionCategory"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    get:
+      operationId: listOptionCategories
+      tags: [Options]
+      summary: List all option categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionCategory"
+
+  /options:
+    post:
+      operationId: createOption
+      tags: [Options]
+      summary: Create a vehicle option
+      description: >
+        Create an option with optional compatibility rules. Dependencies are
+        options that MUST be present when this option is selected. Exclusions
+        are options that CANNOT be present when this option is selected. Trim
+        restrictions limit which trim levels this option is available on.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOptionRequest"
+      responses:
+        "201":
+          description: Option created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Option"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    get:
+      operationId: listOptions
+      tags: [Options]
+      summary: List all options
+      responses:
+        "200":
+          description: List of options
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Option"
+
+  /options/{id}:
+    get:
+      operationId: getOption
+      tags: [Options]
+      summary: Get an option by ID
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Option details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Option"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Quotes ──────────────────────────────────────────────────────────────────
+
+  /quotes:
+    post:
+      operationId: createQuote
+      tags: [Quotes]
+      summary: Create a new quote
+      description: >
+        Creates a quote in draft status for a specific vehicle and trim.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteRequest"
+      responses:
+        "201":
+          description: Quote created in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    get:
+      operationId: listQuotes
+      tags: [Quotes]
+      summary: List all quotes
+      responses:
+        "200":
+          description: List of quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}:
+    get:
+      operationId: getQuote
+      tags: [Quotes]
+      summary: Get a quote by ID
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Quote details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/options:
+    post:
+      operationId: addQuoteOption
+      tags: [Quotes]
+      summary: Add an option to a quote
+      description: >
+        Adds an option to the quote. The system enforces compatibility rules:
+
+        - **Dependencies**: If the option requires other options, those must
+          already be on the quote. Transitive dependencies are validated
+          (if C requires B and B requires A, all must be present).
+
+        - **Exclusions**: If the option excludes another option already on the
+          quote, the request is rejected.
+
+        - **Trim restrictions**: If the option is restricted to specific trim
+          levels, the quote's trim must match.
+
+        - **Status check**: Only quotes in draft status can be modified.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddQuoteOptionRequest"
+      responses:
+        "201":
+          description: Option added to quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          description: >
+            Compatibility rule violation. The response body includes a specific
+            error message identifying the rule that was violated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                dependencyViolation:
+                  summary: Missing dependency
+                  value:
+                    error: "Option \"Adaptive Cruise Control\" requires \"Forward Collision Alert\" to be added first"
+                exclusionViolation:
+                  summary: Exclusion conflict
+                  value:
+                    error: "Option \"Standard Audio\" cannot be added because it excludes \"Premium Audio System\" which is already on the quote"
+                trimRestriction:
+                  summary: Trim restriction
+                  value:
+                    error: "Option \"Performance Exhaust\" is only available on Sport trim and above"
+                notDraft:
+                  summary: Quote not in draft status
+                  value:
+                    error: "Options can only be added to quotes in draft status"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/options/{optionId}:
+    delete:
+      operationId: removeQuoteOption
+      tags: [Quotes]
+      summary: Remove an option from a quote
+      description: >
+        Removes an option from the quote. Only quotes in draft status can be
+        modified.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - name: optionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the option to remove
+      responses:
+        "200":
+          description: Option removed from quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/calculate:
+    post:
+      operationId: calculateQuote
+      tags: [Quotes]
+      summary: Calculate or recalculate quote pricing
+      description: >
+        Calculates the total price of a quote:
+
+        - **Base price**: MSRP of the selected trim level
+        - **Flat options**: Added directly to the base
+        - **Percentage options**: Calculated as a percentage of the base MSRP
+        - **Package discounts**: Applied when ALL options in a package are
+          present on the quote
+        - **Destination charge**: Flat fee configured per vehicle model, added
+          as a separate line item (not an option)
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Pricing calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotePricing"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/transition:
+    post:
+      operationId: transitionQuoteStatus
+      tags: [Quotes]
+      summary: Transition quote status
+      description: >
+        Transitions the quote to a new status. Valid transitions:
+
+        - `draft` → `presented`
+        - `presented` → `accepted`
+        - `presented` → `expired`
+
+        Accepted quotes cannot be modified or reverted. Only draft quotes can
+        have options added or removed.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransitionQuoteRequest"
+      responses:
+        "200":
+          description: Status transitioned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidTransition:
+                  summary: Invalid transition
+                  value:
+                    error: "Cannot transition from \"accepted\" to \"draft\""
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Incentive Programs ──────────────────────────────────────────────────────
+
+  /incentive-programs:
+    post:
+      operationId: createIncentiveProgram
+      tags: [Incentive Programs]
+      summary: Create an incentive program
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIncentiveProgramRequest"
+      responses:
+        "201":
+          description: Program created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncentiveProgram"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+    get:
+      operationId: listIncentivePrograms
+      tags: [Incentive Programs]
+      summary: List all incentive programs
+      responses:
+        "200":
+          description: List of programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncentiveProgram"
+
+  /incentive-programs/{id}:
+    get:
+      operationId: getIncentiveProgram
+      tags: [Incentive Programs]
+      summary: Get an incentive program by ID
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Program details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncentiveProgram"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /incentive-programs/{id}/rules:
+    post:
+      operationId: addProgramRule
+      tags: [Incentive Programs]
+      summary: Add an eligibility rule to a program
+      description: >
+        Adds a rule that must be satisfied for a quote to qualify for this
+        program. All rules on a program use AND logic — every rule must pass.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProgramRuleRequest"
+      responses:
+        "201":
+          description: Rule added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /incentive-programs/{id}/benefits:
+    post:
+      operationId: addProgramBenefit
+      tags: [Incentive Programs]
+      summary: Add a benefit to a program
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProgramBenefitRequest"
+      responses:
+        "201":
+          description: Benefit added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramBenefit"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/evaluate-incentives:
+    post:
+      operationId: evaluateIncentives
+      tags: [Quotes]
+      summary: Evaluate incentive eligibility (what-if)
+      description: >
+        Evaluates which incentive programs the quote qualifies for and what
+        discounts would be applied, **without mutating the quote**. Use this
+        for "what-if" scenarios before committing to applying programs.
+
+        Returns eligible programs, their computed discount amounts, and the
+        projected final price after stacking rules are applied.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Eligibility evaluation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncentiveEvaluation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/apply-incentives:
+    post:
+      operationId: applyIncentives
+      tags: [Quotes]
+      summary: Apply eligible incentive programs to a quote
+      description: >
+        Evaluates eligibility and applies qualifying incentive programs to the
+        quote. Stacking rules are enforced:
+
+        - **Exclusive programs**: If any exclusive program qualifies, only the
+          one with the largest dollar discount is applied. No other programs
+          (exclusive or non-exclusive) are applied.
+
+        - **Non-exclusive programs**: Stack additively, but total discounts
+          from non-exclusive programs are capped at a configurable percentage
+          of the quote's total value.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Incentives applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /quotes/{id}/pricing-breakdown:
+    get:
+      operationId: getPricingBreakdown
+      tags: [Quotes]
+      summary: Get full pricing breakdown for a quote
+      description: >
+        Returns a fully itemized pricing breakdown including base MSRP,
+        individual option prices, package discounts, destination charge,
+        subtotal before incentives, each applied incentive with its name and
+        discount amount, and the final price.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Full pricing breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingBreakdown"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  # ── Parameters ──────────────────────────────────────────────────────────────
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Resource identifier
+
+    VehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Vehicle model identifier
+
+  # ── Reusable Responses ──────────────────────────────────────────────────────
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  # ── Schemas ─────────────────────────────────────────────────────────────────
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: >
+            A specific, human-readable error message describing what went wrong.
+            For compatibility violations, the message must identify the specific
+            rule that was violated and the options involved.
+
+    # ── Vehicle Schemas ─────────────────────────────────────────────────────
+
+    CreateVehicleRequest:
+      type: object
+      required: [make, model, year, destinationCharge]
+      properties:
+        make:
+          type: string
+          examples: ["Chevrolet"]
+        model:
+          type: string
+          examples: ["Malibu"]
+        year:
+          type: integer
+          examples: [2025]
+        destinationCharge:
+          type: number
+          format: double
+          description: Flat destination charge added to every quote for this model
+          examples: [1295]
+
+    Vehicle:
+      type: object
+      required: [id, make, model, year, destinationCharge]
+      properties:
+        id:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        destinationCharge:
+          type: number
+          format: double
+
+    CreateTrimRequest:
+      type: object
+      required: [name, level, msrp]
+      properties:
+        name:
+          type: string
+          description: Display name of the trim level
+          examples: ["LT"]
+        level:
+          type: integer
+          description: >
+            Numeric ordering of the trim within the vehicle's lineup.
+            Lower numbers are base trims; higher numbers are premium.
+            Used for "at or above" trim comparisons.
+          examples: [2]
+        msrp:
+          type: number
+          format: double
+          description: Base MSRP for this trim level
+          examples: [28500]
+
+    Trim:
+      type: object
+      required: [id, vehicleId, name, level, msrp]
+      properties:
+        id:
+          type: string
+        vehicleId:
+          type: string
+        name:
+          type: string
+        level:
+          type: integer
+        msrp:
+          type: number
+          format: double
+
+    # ── Option Schemas ──────────────────────────────────────────────────────
+
+    CreateOptionCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          examples: ["Technology"]
+
+    OptionCategory:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    CreateOptionRequest:
+      type: object
+      required: [name, categoryId, pricingType, price]
+      properties:
+        name:
+          type: string
+          examples: ["Adaptive Cruise Control"]
+        categoryId:
+          type: string
+          description: ID of the option category this belongs to
+        pricingType:
+          $ref: "#/components/schemas/PricingType"
+        price:
+          type: number
+          format: double
+          description: >
+            For flat pricing, the dollar amount. For percentage pricing,
+            the percentage value (e.g., 2.0 means 2% of base MSRP).
+          examples: [1250]
+        description:
+          type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+          description: >
+            IDs of options that MUST be present on the quote when this option is
+            selected. Transitive dependencies are enforced: if this option
+            depends on B, and B depends on A, then A must also be present.
+          default: []
+        exclusions:
+          type: array
+          items:
+            type: string
+          description: >
+            IDs of options that CANNOT be present on the quote when this option
+            is selected.
+          default: []
+        trimRestrictions:
+          type: array
+          items:
+            type: string
+          description: >
+            IDs of trims this option is available on. If empty or omitted, the
+            option is available on all trims. When set, the quote's trim must
+            be in this list for the option to be added.
+          default: []
+        packageId:
+          type: string
+          description: >
+            If this option is part of a package, the package identifier. When
+            ALL options sharing the same packageId are present on a quote, the
+            package discount is applied.
+          nullable: true
+        packageDiscount:
+          type: number
+          format: double
+          description: >
+            Dollar discount applied when the full package is present. Only
+            meaningful on one option per package (the others can set this to 0).
+          nullable: true
+
+    Option:
+      type: object
+      required: [id, name, categoryId, pricingType, price]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        categoryId:
+          type: string
+        pricingType:
+          $ref: "#/components/schemas/PricingType"
+        price:
+          type: number
+          format: double
+        description:
+          type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+        exclusions:
+          type: array
+          items:
+            type: string
+        trimRestrictions:
+          type: array
+          items:
+            type: string
+        packageId:
+          type: string
+          nullable: true
+        packageDiscount:
+          type: number
+          format: double
+          nullable: true
+
+    PricingType:
+      type: string
+      enum: [flat, percentage]
+      description: >
+        `flat` — dollar amount added to the quote.
+        `percentage` — percentage of the base MSRP, calculated dynamically.
+
+    # ── Quote Schemas ───────────────────────────────────────────────────────
+
+    CreateQuoteRequest:
+      type: object
+      required: [vehicleId, trimId, customerName]
+      properties:
+        vehicleId:
+          type: string
+        trimId:
+          type: string
+        customerName:
+          type: string
+          examples: ["Jane Smith"]
+        expiresIn:
+          type: integer
+          description: >
+            Number of days before a presented quote expires. If omitted, a
+            server default is used.
+
+    AddQuoteOptionRequest:
+      type: object
+      required: [optionId]
+      properties:
+        optionId:
+          type: string
+          description: ID of the option to add to the quote
+
+    TransitionQuoteRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/QuoteStatus"
+
+    Quote:
+      type: object
+      required: [id, vehicleId, trimId, customerName, status, options]
+      properties:
+        id:
+          type: string
+        vehicleId:
+          type: string
+        trimId:
+          type: string
+        customerName:
+          type: string
+        status:
+          $ref: "#/components/schemas/QuoteStatus"
+        options:
+          type: array
+          items:
+            type: string
+          description: IDs of options currently on the quote
+        appliedIncentives:
+          type: array
+          items:
+            type: string
+          description: IDs of incentive programs currently applied to the quote
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    QuoteStatus:
+      type: string
+      enum: [draft, presented, accepted, expired]
+      description: >
+        Quote lifecycle status. Valid transitions:
+        draft → presented, presented → accepted, presented → expired.
+        Only draft quotes can be modified (add/remove options).
+        Accepted quotes cannot be reverted.
+
+    QuotePricing:
+      type: object
+      required: [quoteId, baseMsrp, optionsTotal, destinationCharge, totalPrice]
+      properties:
+        quoteId:
+          type: string
+        baseMsrp:
+          type: number
+          format: double
+          description: MSRP of the selected trim level
+        optionsTotal:
+          type: number
+          format: double
+          description: Sum of all option prices (flat + calculated percentage)
+        packageDiscount:
+          type: number
+          format: double
+          description: Total package discounts applied (negative value)
+        destinationCharge:
+          type: number
+          format: double
+          description: Flat destination charge for the vehicle model
+        totalPrice:
+          type: number
+          format: double
+          description: baseMsrp + optionsTotal + packageDiscount + destinationCharge
+
+    # ── Incentive Program Schemas ───────────────────────────────────────────
+
+    CreateIncentiveProgramRequest:
+      type: object
+      required: [name, startDate, endDate, exclusive]
+      properties:
+        name:
+          type: string
+          examples: ["Summer Sales Event"]
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date
+          description: Program effective start date (inclusive)
+          examples: ["2025-06-01"]
+        endDate:
+          type: string
+          format: date
+          description: Program effective end date (inclusive)
+          examples: ["2025-08-31"]
+        exclusive:
+          type: boolean
+          description: >
+            If true, this program cannot stack with any other program. When
+            multiple exclusive programs qualify, only the one producing the
+            largest dollar discount is applied.
+          default: false
+        stackingCap:
+          type: number
+          format: double
+          description: >
+            Maximum percentage of the total quote value that non-exclusive
+            programs can discount in aggregate (e.g., 15.0 means 15%). Only
+            relevant for non-exclusive programs.
+          examples: [15.0]
+          nullable: true
+
+    IncentiveProgram:
+      type: object
+      required: [id, name, startDate, endDate, exclusive]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        exclusive:
+          type: boolean
+        stackingCap:
+          type: number
+          format: double
+          nullable: true
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgramRule"
+        benefits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgramBenefit"
+
+    CreateProgramRuleRequest:
+      type: object
+      required: [type, parameters]
+      properties:
+        type:
+          $ref: "#/components/schemas/ProgramRuleType"
+        parameters:
+          $ref: "#/components/schemas/ProgramRuleParameters"
+
+    ProgramRule:
+      type: object
+      required: [id, programId, type, parameters]
+      properties:
+        id:
+          type: string
+        programId:
+          type: string
+        type:
+          $ref: "#/components/schemas/ProgramRuleType"
+        parameters:
+          $ref: "#/components/schemas/ProgramRuleParameters"
+
+    ProgramRuleType:
+      type: string
+      enum:
+        - vehicle_model
+        - min_trim_level
+        - min_quote_total
+        - option_included
+        - category_included
+        - date_range
+      description: >
+        Rule types:
+
+        - `vehicle_model` — Quote's vehicle must be in the specified list.
+        - `min_trim_level` — Quote's trim level must be at or above the minimum.
+        - `min_quote_total` — Quote total must exceed the threshold.
+        - `option_included` — A specific option must be on the quote.
+        - `category_included` — At least one option from the category must be on the quote.
+        - `date_range` — Quote must be created within the program's date range.
+
+    ProgramRuleParameters:
+      type: object
+      description: >
+        Parameters vary by rule type. Include only the fields relevant to the
+        rule type.
+      properties:
+        vehicleIds:
+          type: array
+          items:
+            type: string
+          description: "For `vehicle_model` rules: list of qualifying vehicle IDs"
+        minTrimLevel:
+          type: integer
+          description: >
+            For `min_trim_level` rules: the minimum trim level value.
+            The quote's trim level must be >= this value.
+          examples: [2]
+        minTotal:
+          type: number
+          format: double
+          description: "For `min_quote_total` rules: minimum quote total threshold"
+          examples: [45000]
+        optionId:
+          type: string
+          description: "For `option_included` rules: the required option ID"
+        categoryId:
+          type: string
+          description: "For `category_included` rules: the required category ID"
+
+    CreateProgramBenefitRequest:
+      type: object
+      required: [type, amount]
+      properties:
+        type:
+          $ref: "#/components/schemas/ProgramBenefitType"
+        amount:
+          type: number
+          format: double
+          description: >
+            For `flat_discount`: dollar amount (e.g., 2000).
+            For `percentage_msrp`: percentage of base MSRP (e.g., 5.0 = 5%).
+            For `percentage_category`: percentage off options in the category.
+          examples: [2000]
+        categoryId:
+          type: string
+          description: >
+            Required for `percentage_category` benefits. The category whose
+            option prices are discounted.
+          nullable: true
+
+    ProgramBenefit:
+      type: object
+      required: [id, programId, type, amount]
+      properties:
+        id:
+          type: string
+        programId:
+          type: string
+        type:
+          $ref: "#/components/schemas/ProgramBenefitType"
+        amount:
+          type: number
+          format: double
+        categoryId:
+          type: string
+          nullable: true
+
+    ProgramBenefitType:
+      type: string
+      enum:
+        - flat_discount
+        - percentage_msrp
+        - percentage_category
+      description: >
+        Benefit types:
+
+        - `flat_discount` — Flat dollar amount off the quote total.
+        - `percentage_msrp` — Percentage discount off the base MSRP (not total).
+        - `percentage_category` — Percentage discount off options in a specific category.
+
+    # ── Incentive Evaluation Schemas ────────────────────────────────────────
+
+    IncentiveEvaluation:
+      type: object
+      required: [quoteId, eligiblePrograms, projectedDiscount, projectedFinalPrice]
+      properties:
+        quoteId:
+          type: string
+        eligiblePrograms:
+          type: array
+          items:
+            $ref: "#/components/schemas/EligibleProgram"
+          description: All programs the quote currently qualifies for
+        appliedPrograms:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppliedIncentive"
+          description: >
+            Programs that would actually be applied after stacking rules.
+            May differ from eligiblePrograms when exclusive rules or caps apply.
+        projectedDiscount:
+          type: number
+          format: double
+          description: Total discount amount that would be applied
+        projectedFinalPrice:
+          type: number
+          format: double
+          description: Quote total after projected incentive discounts
+
+    EligibleProgram:
+      type: object
+      required: [programId, programName, exclusive, computedDiscount]
+      properties:
+        programId:
+          type: string
+        programName:
+          type: string
+        exclusive:
+          type: boolean
+        computedDiscount:
+          type: number
+          format: double
+          description: >
+            The dollar discount this program would produce for the current
+            quote state.
+
+    # ── Pricing Breakdown Schemas ───────────────────────────────────────────
+
+    PricingBreakdown:
+      type: object
+      required:
+        - quoteId
+        - baseMsrp
+        - options
+        - packageDiscounts
+        - destinationCharge
+        - subtotalBeforeIncentives
+        - appliedIncentives
+        - totalIncentiveDiscount
+        - finalPrice
+      properties:
+        quoteId:
+          type: string
+        baseMsrp:
+          type: number
+          format: double
+          description: MSRP of the selected trim level
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/PricingLineItem"
+          description: Each option with its computed price
+        packageDiscounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PackageDiscountLineItem"
+          description: Package discounts applied (when all member options present)
+        destinationCharge:
+          type: number
+          format: double
+        subtotalBeforeIncentives:
+          type: number
+          format: double
+          description: >
+            baseMsrp + sum(options) + sum(packageDiscounts) + destinationCharge
+        appliedIncentives:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppliedIncentive"
+          description: Each applied incentive with its discount amount
+        totalIncentiveDiscount:
+          type: number
+          format: double
+          description: Sum of all applied incentive discounts
+        finalPrice:
+          type: number
+          format: double
+          description: subtotalBeforeIncentives - totalIncentiveDiscount
+
+    PricingLineItem:
+      type: object
+      required: [optionId, name, pricingType, price]
+      properties:
+        optionId:
+          type: string
+        name:
+          type: string
+        pricingType:
+          $ref: "#/components/schemas/PricingType"
+        price:
+          type: number
+          format: double
+          description: >
+            Computed price. For percentage options, this is the calculated
+            dollar amount based on the base MSRP.
+
+    PackageDiscountLineItem:
+      type: object
+      required: [packageId, discount]
+      properties:
+        packageId:
+          type: string
+        packageName:
+          type: string
+        discount:
+          type: number
+          format: double
+          description: The dollar amount discounted (negative value)
+
+    AppliedIncentive:
+      type: object
+      required: [programId, programName, benefitType, discountAmount]
+      properties:
+        programId:
+          type: string
+        programName:
+          type: string
+        benefitType:
+          $ref: "#/components/schemas/ProgramBenefitType"
+        discountAmount:
+          type: number
+          format: double
+          description: Dollar amount discounted by this incentive
