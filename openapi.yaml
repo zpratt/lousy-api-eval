@@ -837,6 +837,13 @@ components:
             If this option is part of a package, the package identifier. When
             ALL options sharing the same packageId are present on a quote, the
             package discount is applied.
+        packageName:
+          type: ["string", "null"]
+          description: >
+            Human-readable name of the package this option belongs to. All
+            options sharing the same packageId should use the same
+            packageName. Used in the pricing breakdown to label the package
+            discount line item.
         packageDiscount:
           anyOf:
             - type: number
@@ -881,6 +888,8 @@ components:
           items:
             type: string
         packageId:
+          type: ["string", "null"]
+        packageName:
           type: ["string", "null"]
         packageDiscount:
           anyOf:
@@ -931,7 +940,7 @@ components:
 
     Quote:
       type: object
-      required: [id, vehicleId, trimId, customerName, status, options]
+      required: [id, vehicleId, trimId, customerName, status, options, appliedIncentives, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -1105,6 +1114,7 @@ components:
               type:
                 const: vehicle_model
           then:
+            required: [parameters]
             properties:
               parameters:
                 required: [vehicleIds]
@@ -1113,6 +1123,7 @@ components:
               type:
                 const: min_trim_level
           then:
+            required: [parameters]
             properties:
               parameters:
                 required: [minTrimLevel]
@@ -1121,6 +1132,7 @@ components:
               type:
                 const: min_quote_total
           then:
+            required: [parameters]
             properties:
               parameters:
                 required: [minTotal]
@@ -1129,6 +1141,7 @@ components:
               type:
                 const: option_included
           then:
+            required: [parameters]
             properties:
               parameters:
                 required: [optionId]
@@ -1137,6 +1150,7 @@ components:
               type:
                 const: category_included
           then:
+            required: [parameters]
             properties:
               parameters:
                 required: [categoryId]
