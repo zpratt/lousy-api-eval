@@ -1,0 +1,24 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "linter": {
+    "rules": {
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 10 }
+        }
+      },
+      "correctness": {
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noConsole": "warn"
+      },
+      "style": {
+        "noParameterAssign": "warn"
+      }
+    }
+  }
+}
