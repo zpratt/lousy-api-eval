@@ -1198,7 +1198,7 @@ components:
 
     IncentiveEvaluation:
       type: object
-      required: [quoteId, eligiblePrograms, appliedPrograms, projectedDiscount, projectedFinalPrice]
+      required: [quoteId, eligiblePrograms, appliedIncentives, projectedDiscount, projectedFinalPrice]
       properties:
         quoteId:
           type: string
@@ -1207,13 +1207,14 @@ components:
           items:
             $ref: "#/components/schemas/EligibleProgram"
           description: All programs the quote currently qualifies for
-        appliedPrograms:
+        appliedIncentives:
           type: array
           items:
             $ref: "#/components/schemas/AppliedIncentive"
           description: >
-            Programs that would actually be applied after stacking rules.
-            May differ from eligiblePrograms when exclusive rules or caps apply.
+            Benefits that would actually be applied after stacking rules
+            (one entry per benefit, not per program). May differ from
+            eligiblePrograms when exclusive rules or caps apply.
         projectedDiscount:
           type: number
           format: double
