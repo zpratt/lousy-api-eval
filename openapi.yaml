@@ -355,7 +355,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Quote"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notDraft:
+                  summary: Quote is not in draft status
+                  value:
+                    code: notDraft
+                    message: Quote is not in draft status and cannot be modified
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -825,8 +835,10 @@ components:
             ALL options sharing the same packageId are present on a quote, the
             package discount is applied.
         packageDiscount:
-          type: ["number", "null"]
-          format: double
+          anyOf:
+            - type: number
+              format: double
+            - type: "null"
           description: >
             Dollar discount applied when the full package is present. Only
             meaningful on one option per package (the others can set this to 0).
@@ -863,8 +875,10 @@ components:
         packageId:
           type: ["string", "null"]
         packageDiscount:
-          type: ["number", "null"]
-          format: double
+          anyOf:
+            - type: number
+              format: double
+            - type: "null"
 
     PricingType:
       type: string
@@ -975,7 +989,12 @@ components:
           type: number
           format: double
           description: >
-            baseMsrp + optionsTotal + packageDiscount + destinationCharge.
+            Pre-incentive total for the quote: baseMsrp + optionsTotal +
+            packageDiscount + destinationCharge. This value does not include
+            any incentive discounts, even if incentives have been evaluated
+            or applied to the quote. For the final customer price including
+            all applied incentives, use the `finalPrice` field from the
+            pricing breakdown returned by GET /quotes/{id}/pricing-breakdown.
             `packageDiscount` is always present (0 when no packages apply).
 
     # ── Incentive Program Schemas ───────────────────────────────────────────
@@ -1007,8 +1026,10 @@ components:
             largest dollar discount is applied.
           default: false
         stackingCap:
-          type: ["number", "null"]
-          format: double
+          anyOf:
+            - type: number
+              format: double
+            - type: "null"
           description: >
             Maximum percentage of the total quote value that non-exclusive
             programs can discount in aggregate (e.g., 15.0 means 15%). Only
@@ -1036,8 +1057,10 @@ components:
         exclusive:
           type: boolean
         stackingCap:
-          type: ["number", "null"]
-          format: double
+          anyOf:
+            - type: number
+              format: double
+            - type: "null"
         rules:
           type: array
           items:
@@ -1172,7 +1195,7 @@ components:
 
     IncentiveEvaluation:
       type: object
-      required: [quoteId, eligiblePrograms, projectedDiscount, projectedFinalPrice]
+      required: [quoteId, eligiblePrograms, appliedPrograms, projectedDiscount, projectedFinalPrice]
       properties:
         quoteId:
           type: string
@@ -1286,7 +1309,7 @@ components:
 
     PackageDiscountLineItem:
       type: object
-      required: [packageId, discount]
+      required: [packageId, packageName, discount]
       properties:
         packageId:
           type: string
@@ -1299,6 +1322,10 @@ components:
 
     AppliedIncentive:
       type: object
+      description: >
+        Represents a single applied benefit. A program with multiple benefit
+        types produces one `AppliedIncentive` entry per benefit so that each
+        discount can be itemized and traced back to its source program and type.
       required: [programId, programName, benefitType, discountAmount]
       properties:
         programId:
@@ -1310,4 +1337,4 @@ components:
         discountAmount:
           type: number
           format: double
-          description: Dollar amount discounted by this incentive
+          description: Dollar amount discounted by this benefit
