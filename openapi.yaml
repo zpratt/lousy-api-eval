@@ -843,8 +843,13 @@ components:
               format: double
             - type: "null"
           description: >
-            Dollar discount applied when the full package is present. Only
-            meaningful on one option per package (the others can set this to 0).
+            Dollar discount applied when the full package is present. Each
+            option in a package may carry its own packageDiscount value. When
+            calculating the total package discount for a quote, the server
+            sums all non-zero packageDiscount values across options sharing
+            the same packageId. Typically only one option per package carries
+            the discount (the others set this to 0 or null), but if multiple
+            options specify non-zero values they are all summed.
 
     Option:
       type: object
@@ -983,7 +988,8 @@ components:
           format: double
           description: >
             Total package discounts applied (negative value). Zero when no
-            packages are fully present on the quote.
+            packages are fully present on the quote. Always present in the
+            response (0 when no packages apply).
         destinationCharge:
           type: number
           format: double
@@ -998,7 +1004,6 @@ components:
             or applied to the quote. For the final customer price including
             all applied incentives, use the `finalPrice` field from the
             pricing breakdown returned by GET /quotes/{id}/pricing-breakdown.
-            `packageDiscount` is always present (0 when no packages apply).
 
     # ── Incentive Program Schemas ───────────────────────────────────────────
 
@@ -1043,7 +1048,7 @@ components:
 
     IncentiveProgram:
       type: object
-      required: [id, name, startDate, endDate, exclusive]
+      required: [id, name, startDate, endDate, exclusive, rules, benefits]
       properties:
         id:
           type: string
@@ -1066,10 +1071,12 @@ components:
             - type: "null"
         rules:
           type: array
+          default: []
           items:
             $ref: "#/components/schemas/ProgramRule"
         benefits:
           type: array
+          default: []
           items:
             $ref: "#/components/schemas/ProgramBenefit"
 
@@ -1164,6 +1171,15 @@ components:
           description: >
             Required for `percentage_category` benefits. The category whose
             option prices are discounted.
+      if:
+        properties:
+          type:
+            const: percentage_category
+      then:
+        required: [categoryId]
+        properties:
+          categoryId:
+            type: string
 
     ProgramBenefit:
       type: object
