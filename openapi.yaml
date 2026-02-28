@@ -359,13 +359,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/Error"
               examples:
                 notDraft:
                   summary: Quote is not in draft status
                   value:
-                    code: notDraft
-                    message: Quote is not in draft status and cannot be modified
+                    error: Quote is not in draft status and cannot be modified
         "404":
           $ref: "#/components/responses/NotFound"
 
