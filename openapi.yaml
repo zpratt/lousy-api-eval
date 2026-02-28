@@ -591,8 +591,8 @@ paths:
           of the quote's total value.
 
         **Lifecycle constraint**: Incentives may only be applied to quotes in
-        `draft` or `presented` status. Attempting to apply incentives to an
-        `accepted` or `expired` quote will return a `409 Conflict` error.
+        `draft` status. Attempting to apply incentives to a quote in any other
+        status (`presented`, `accepted`, or `expired`) will return a `409 Conflict` error.
       parameters:
         - $ref: "#/components/parameters/ResourceId"
       responses:
@@ -616,7 +616,7 @@ paths:
                 invalidStatus:
                   summary: Quote is not in a modifiable status
                   value:
-                    error: "Incentives can only be applied to quotes in draft or presented status"
+                    error: "Incentives can only be applied to quotes in draft status"
 
   /quotes/{id}/pricing-breakdown:
     get:
@@ -953,6 +953,12 @@ components:
           items:
             type: string
           description: IDs of incentive programs currently applied to the quote
+        expiresAt:
+          type: ["string", "null"]
+          format: date-time
+          description: >
+            Expiration timestamp, calculated from expiresIn when the quote
+            transitions to presented status. Null while in draft status.
         createdAt:
           type: string
           format: date-time
@@ -1143,7 +1149,9 @@ components:
         minTotal:
           type: number
           format: double
-          description: "For `min_quote_total` rules: minimum quote total threshold"
+          description: >
+            For `min_quote_total` rules: the quote total must be strictly
+            greater than (>) this value.
           examples: [45000]
         optionId:
           type: string
@@ -1329,10 +1337,13 @@ components:
 
     PackageDiscountLineItem:
       type: object
-      required: [packageId, discount]
+      required: [packageId, packageName, discount]
       properties:
         packageId:
           type: string
+        packageName:
+          type: string
+          description: Human-readable name of the package
         discount:
           type: number
           format: double
