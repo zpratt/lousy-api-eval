@@ -993,9 +993,9 @@ components:
           type: number
           format: double
           description: >
-            Total package discounts applied (negative value). Zero when no
-            packages are fully present on the quote. Always present in the
-            response (0 when no packages apply).
+            Total package discount amount (positive value, subtracted from
+            total). Zero when no packages are fully present on the quote.
+            Always present in the response (0 when no packages apply).
         destinationCharge:
           type: number
           format: double
@@ -1004,7 +1004,7 @@ components:
           type: number
           format: double
           description: >
-            Pre-incentive total for the quote: baseMsrp + optionsTotal +
+            Pre-incentive total for the quote: baseMsrp + optionsTotal -
             packageDiscount + destinationCharge. This value does not include
             any incentive discounts, even if incentives have been evaluated
             or applied to the quote. For the final customer price including
@@ -1088,12 +1088,58 @@ components:
 
     CreateProgramRuleRequest:
       type: object
-      required: [type, parameters]
+      required: [type]
       properties:
         type:
           $ref: "#/components/schemas/ProgramRuleType"
         parameters:
+          default: {}
           $ref: "#/components/schemas/ProgramRuleParameters"
+          description: >
+            Rule-specific parameters. May be omitted for rule types that
+            require no parameters (e.g., date_range uses the program's own
+            startDate/endDate).
+      allOf:
+        - if:
+            properties:
+              type:
+                const: vehicle_model
+          then:
+            properties:
+              parameters:
+                required: [vehicleIds]
+        - if:
+            properties:
+              type:
+                const: min_trim_level
+          then:
+            properties:
+              parameters:
+                required: [minTrimLevel]
+        - if:
+            properties:
+              type:
+                const: min_quote_total
+          then:
+            properties:
+              parameters:
+                required: [minTotal]
+        - if:
+            properties:
+              type:
+                const: option_included
+          then:
+            properties:
+              parameters:
+                required: [optionId]
+        - if:
+            properties:
+              type:
+                const: category_included
+          then:
+            properties:
+              parameters:
+                required: [categoryId]
 
     ProgramRule:
       type: object
@@ -1242,7 +1288,9 @@ components:
         projectedDiscount:
           type: number
           format: double
-          description: Total discount amount that would be applied
+          description: >
+            Total discount amount that would be applied (positive value,
+            subtracted from subtotal)
         projectedFinalPrice:
           type: number
           format: double
@@ -1263,7 +1311,7 @@ components:
           format: double
           description: >
             The dollar discount this program would produce for the current
-            quote state.
+            quote state (positive value, subtracted from total).
 
     # ── Pricing Breakdown Schemas ───────────────────────────────────────────
 
@@ -1303,7 +1351,7 @@ components:
           type: number
           format: double
           description: >
-            baseMsrp + sum(options) + sum(packageDiscounts) + destinationCharge
+            baseMsrp + sum(options) - sum(packageDiscounts) + destinationCharge
         appliedIncentives:
           type: array
           items:
@@ -1312,7 +1360,9 @@ components:
         totalIncentiveDiscount:
           type: number
           format: double
-          description: Sum of all applied incentive discounts
+          description: >
+            Sum of all applied incentive discounts (positive value,
+            subtracted from subtotalBeforeIncentives)
         finalPrice:
           type: number
           format: double
@@ -1337,14 +1387,19 @@ components:
 
     PackageDiscountLineItem:
       type: object
-      required: [packageId, discount]
+      required: [packageId, packageName, discount]
       properties:
         packageId:
           type: string
+        packageName:
+          type: string
+          description: Human-readable name of the package
         discount:
           type: number
           format: double
-          description: The dollar amount discounted (negative value)
+          description: >
+            The dollar amount discounted for this package (positive value,
+            subtracted from total)
 
     AppliedIncentive:
       type: object
@@ -1363,4 +1418,6 @@ components:
         discountAmount:
           type: number
           format: double
-          description: Dollar amount discounted by this benefit
+          description: >
+            Dollar amount discounted by this benefit (positive value,
+            subtracted from subtotal)
