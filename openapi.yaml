@@ -181,6 +181,8 @@ paths:
                 $ref: "#/components/schemas/Option"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     get:
       operationId: listOptions
@@ -237,6 +239,8 @@ paths:
                 $ref: "#/components/schemas/Quote"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     get:
       operationId: listQuotes
@@ -1308,11 +1312,9 @@ components:
 
     PackageDiscountLineItem:
       type: object
-      required: [packageId, packageName, discount]
+      required: [packageId, discount]
       properties:
         packageId:
-          type: string
-        packageName:
           type: string
         discount:
           type: number
