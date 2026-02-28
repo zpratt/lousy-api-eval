@@ -1222,7 +1222,7 @@ components:
 
     IncentiveEvaluation:
       type: object
-      required: [quoteId, eligiblePrograms, appliedIncentives, projectedDiscount, projectedFinalPrice]
+      required: [quoteId, eligiblePrograms, projectedBenefits, projectedDiscount, projectedFinalPrice]
       properties:
         quoteId:
           type: string
@@ -1231,7 +1231,7 @@ components:
           items:
             $ref: "#/components/schemas/EligibleProgram"
           description: All programs the quote currently qualifies for
-        appliedIncentives:
+        projectedBenefits:
           type: array
           items:
             $ref: "#/components/schemas/AppliedIncentive"
@@ -1337,13 +1337,10 @@ components:
 
     PackageDiscountLineItem:
       type: object
-      required: [packageId, packageName, discount]
+      required: [packageId, discount]
       properties:
         packageId:
           type: string
-        packageName:
-          type: string
-          description: Human-readable name of the package
         discount:
           type: number
           format: double
