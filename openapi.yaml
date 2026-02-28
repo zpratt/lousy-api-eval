@@ -366,9 +366,9 @@ paths:
                 $ref: "#/components/schemas/Error"
               examples:
                 notDraft:
-                  summary: Quote is not in draft status
+                  summary: Options can only be removed from quotes in draft status
                   value:
-                    error: Quote is not in draft status and cannot be modified
+                    error: Options can only be removed from quotes in draft status
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -428,7 +428,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
-        "400":
+        "409":
           description: Invalid status transition
           content:
             application/json:
@@ -590,6 +590,11 @@ paths:
           from non-exclusive programs are capped at a configurable percentage
           of the quote's total value.
 
+        **Idempotency**: If this endpoint is called more than once on the same
+        quote, previously applied incentives are replaced by the newly computed
+        eligible set. Each call performs a fresh evaluation and overwrites
+        `appliedIncentives` on the quote.
+
         **Lifecycle constraint**: Incentives may only be applied to quotes in
         `draft` status. Attempting to apply incentives to a quote in any other
         status (`presented`, `accepted`, or `expired`) will return a `409 Conflict` error.
@@ -602,8 +607,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
-        "400":
-          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -1004,7 +1007,10 @@ components:
           description: >
             Total package discount amount (positive value, subtracted from
             total). Zero when no packages are fully present on the quote.
-            Always present in the response (0 when no packages apply).
+            Always present in the response (0 when no packages apply). This
+            is an aggregated scalar total across all applicable packages. For
+            an itemized per-package breakdown, see the `packageDiscounts` array
+            in `PricingBreakdown` returned by `GET /quotes/{id}/pricing-breakdown`.
         destinationCharge:
           type: number
           format: double
@@ -1056,9 +1062,14 @@ components:
           description: >
             Maximum percentage of the total quote value that non-exclusive
             programs can discount in aggregate (e.g., 15.0 means 15%). Only
-            relevant for non-exclusive programs. When multiple qualifying
-            non-exclusive programs define different caps, the lowest (most
-            restrictive) cap governs the aggregate discount limit.
+            relevant for non-exclusive programs. If this value is null for a
+            qualifying non-exclusive program, that program does not impose any
+            stacking cap. When multiple qualifying non-exclusive programs define
+            different non-null caps, the lowest (most restrictive) cap governs
+            the aggregate discount limit. If no qualifying non-exclusive
+            program specifies a non-null cap, no aggregate stacking cap is
+            applied and non-exclusive discounts may stack without a percentage
+            limit (subject to other program rules).
           examples: [15.0]
 
     IncentiveProgram:
@@ -1110,6 +1121,7 @@ components:
             startDate/endDate).
       allOf:
         - if:
+            required: [type]
             properties:
               type:
                 const: vehicle_model
@@ -1119,6 +1131,7 @@ components:
               parameters:
                 required: [vehicleIds]
         - if:
+            required: [type]
             properties:
               type:
                 const: min_trim_level
@@ -1128,6 +1141,7 @@ components:
               parameters:
                 required: [minTrimLevel]
         - if:
+            required: [type]
             properties:
               type:
                 const: min_quote_total
@@ -1137,6 +1151,7 @@ components:
               parameters:
                 required: [minTotal]
         - if:
+            required: [type]
             properties:
               type:
                 const: option_included
@@ -1146,6 +1161,7 @@ components:
               parameters:
                 required: [optionId]
         - if:
+            required: [type]
             properties:
               type:
                 const: category_included
@@ -1185,15 +1201,18 @@ components:
         - `min_quote_total` — Quote total must exceed the threshold.
         - `option_included` — A specific option must be on the quote.
         - `category_included` — At least one option from the category must be on the quote.
-        - `date_range` — Quote must be created within the program's date range.
+        - `date_range` — Quote's `createdAt` timestamp must fall within the
+          program's active date range. Eligibility is always evaluated against
+          the quote's persisted `createdAt` value, not the current wall-clock
+          time at the point of evaluation or incentive application.
 
     ProgramRuleParameters:
       type: object
       description: >
         Parameters vary by rule type. Include only the fields relevant to the
         rule type. The `date_range` rule type requires no additional parameters
-        here — it checks whether the quote creation date falls within the
-        program's own `startDate`/`endDate` fields.
+        here — it evaluates eligibility using the quote's persisted `createdAt`
+        timestamp against the program's own `startDate`/`endDate` fields.
       properties:
         vehicleIds:
           type: array
@@ -1324,8 +1343,10 @@ components:
           type: number
           format: double
           description: >
-            The dollar discount this program would produce for the current
-            quote state (positive value, subtracted from total).
+            Total dollar discount this program would produce for the current
+            quote state (positive value, subtracted from total), aggregating
+            the impact of all of its benefits. See `projectedBenefits` for an
+            itemized per-benefit breakdown.
 
     # ── Pricing Breakdown Schemas ───────────────────────────────────────────
 
