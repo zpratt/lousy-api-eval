@@ -26,6 +26,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.4",
     "@stoplight/spectral-cli": "6.15.0",
+    "@stoplight/spectral-owasp-ruleset": "^2.0.1",
     "@types/chance": "1.1.7",
     "chance": "1.1.13",
     "testcontainers": "11.12.0",

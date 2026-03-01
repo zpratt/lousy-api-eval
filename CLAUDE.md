@@ -13,6 +13,7 @@ See `.github/specs/lousy-init-api-eval-spec.md` for the full evaluation spec, ta
 npm test                    # Run unit tests (vitest)
 npm run test:e2e            # Run E2E acceptance tests against an API implementation
 npx @biomejs/biome lint .   # Lint this repo's code
+npx spectral lint path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
 
 # File-scoped (faster feedback)
 npx biome check path/to/file.ts
@@ -20,6 +21,8 @@ npm test path/to/file.test.ts
 
 # Validation suite (run before commits)
 npm test && npx @biomejs/biome lint .
+# If OpenAPI specs exist or were modified:
+npx spectral lint path/to/openapi.yaml --fail-severity=error
 ```
 
 ---
@@ -35,6 +38,7 @@ Follow this sequence for ALL code changes. Work in small increments — one chan
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
 7. **Validate**: `npm test && npx @biomejs/biome lint .`
+8. **Validate OpenAPI specs** (if any exist or were modified): `npx spectral lint <spec-file> --fail-severity=error` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.
 
@@ -182,7 +186,9 @@ See @.github/instructions/pipeline.instructions.md for workflow structure requir
 
 ## OpenAPI Linting with Spectral
 
-This project enforces OpenAPI spec quality using Spectral. All OpenAPI specifications must pass `spectral lint` with zero errors before being committed.
+This project enforces OpenAPI spec quality using Spectral. Spectral enforces both structural quality rules and **OWASP API Security Top 10 (2023)** rules — all at error severity.
+
+**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npx spectral lint <spec-file> --fail-severity=error` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
 
 This repo pins the Spectral CLI version via `@stoplight/spectral-cli@6.15.0`. Always invoke Spectral through `npx` (or the `npm run lint:api` script) so local results match CI.
 
@@ -238,6 +244,7 @@ Spectral runs in CI via `.github/workflows/api-lint.yml` on every PR touching sp
 **Always do:**
 - Write tests before implementation (TDD)
 - Run lint and tests after every change
+- Run `npx spectral lint` on any OpenAPI spec file after every change — this is mandatory
 - Run full validation before commits
 - Map E2E tests to scorecard dimensions
 - Use existing patterns from codebase
@@ -250,6 +257,7 @@ Spectral runs in CI via `.github/workflows/api-lint.yml` on every PR touching sp
 
 **Never do:**
 - Skip the TDD workflow
+- Skip Spectral linting on OpenAPI spec files
 - Store secrets in code (use environment variables)
 - Use Jest (use Vitest)
 - Use mocking in E2E tests (all services must be real containers)

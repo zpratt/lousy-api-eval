@@ -1,5 +1,6 @@
 extends:
   - "spectral:oas"
+  - "@stoplight/spectral-owasp-ruleset"
 
 rules:
   # --- Structural Quality ---
@@ -38,3 +39,55 @@ rules:
   # --- Server Configuration ---
   oas3-api-servers: warn
   oas3-server-trailing-slash: error
+
+  # --- OWASP API Security Top 10 (2023) ---
+  # All OWASP rules set to error severity.
+  # Rules already at error by default are listed for explicitness.
+
+  # API1:2023 - Broken Object Level Authorization
+  owasp:api1:2023-no-numeric-ids: error
+
+  # API2:2023 - Broken Authentication
+  owasp:api2:2023-no-http-basic: error
+  owasp:api2:2023-no-api-keys-in-url: error
+  owasp:api2:2023-no-credentials-in-url: error
+  owasp:api2:2023-auth-insecure-schemes: error
+  owasp:api2:2023-jwt-best-practices: error
+  owasp:api2:2023-short-lived-access-tokens: error
+  owasp:api2:2023-write-restricted: error
+  owasp:api2:2023-read-restricted: error
+
+  # API3:2023 - Broken Object Property Level Authorization
+  owasp:api3:2023-no-additionalProperties: error
+  owasp:api3:2023-constrained-additionalProperties: error
+  owasp:api3:2023-no-unevaluatedProperties: error
+  owasp:api3:2023-constrained-unevaluatedProperties: error
+
+  # API4:2023 - Unrestricted Resource Consumption
+  owasp:api4:2023-rate-limit: error
+  owasp:api4:2023-rate-limit-retry-after: error
+  owasp:api4:2023-rate-limit-responses-429: error
+  owasp:api4:2023-array-limit: error
+  owasp:api4:2023-string-limit: error
+  owasp:api4:2023-string-restricted: error
+  owasp:api4:2023-integer-limit: error
+  owasp:api4:2023-integer-limit-legacy: error
+  owasp:api4:2023-integer-format: error
+
+  # API5:2023 - Broken Function Level Authorization
+  owasp:api5:2023-admin-security-unique: error
+
+  # API7:2023 - Server Side Request Forgery
+  owasp:api7:2023-concerning-url-parameter: error
+
+  # API8:2023 - Security Misconfiguration
+  owasp:api8:2023-define-cors-origin: error
+  owasp:api8:2023-no-scheme-http: error
+  owasp:api8:2023-no-server-http: error
+  owasp:api8:2023-define-error-validation: error
+  owasp:api8:2023-define-error-responses-401: error
+  owasp:api8:2023-define-error-responses-500: error
+
+  # API9:2023 - Improper Inventory Management
+  owasp:api9:2023-inventory-access: error
+  owasp:api9:2023-inventory-environment: error
