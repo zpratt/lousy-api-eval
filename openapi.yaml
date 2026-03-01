@@ -328,12 +328,19 @@ paths:
                   summary: Trim restriction
                   value:
                     error: "Option \"Performance Exhaust\" is only available on Sport trim and above"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Quote status does not allow modification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 notDraft:
                   summary: Quote not in draft status
                   value:
                     error: "Options can only be added to quotes in draft status"
-        "404":
-          $ref: "#/components/responses/NotFound"
 
   /quotes/{id}/options/{optionId}:
     delete:
@@ -609,7 +616,7 @@ paths:
 
         **Idempotency**: If this endpoint is called more than once on the same
         quote, previously applied incentives are replaced by the newly computed
-        eligible set. Each call performs a fresh evaluation and overwrites
+        applied set (post-stacking). Each call performs a fresh evaluation and overwrites
         `appliedIncentives` on the quote.
 
         **Lifecycle constraint**: Incentives may only be applied to quotes in
