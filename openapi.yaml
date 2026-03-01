@@ -946,9 +946,10 @@ components:
           examples: ["Jane Smith"]
         expiresIn:
           type: integer
+          default: 30
           description: >
-            Number of days before a presented quote expires. If omitted, a
-            server default is used.
+            Number of days before a presented quote expires. If omitted,
+            defaults to 30 days.
 
     AddQuoteOptionRequest:
       type: object
@@ -1086,8 +1087,9 @@ components:
             - type: "null"
           description: >
             Maximum aggregate discount that non-exclusive programs can apply,
-            expressed as a percentage of `PricingBreakdown.subtotalBeforeIncentives`
-            (the quote total before any incentives, e.g., 15.0 means 15%). Only
+            expressed as a percentage of the full quote total
+            (baseMsrp + sum of option prices + destinationCharge, before any
+            package discounts are deducted; e.g., 15.0 means 15%). Only
             relevant for non-exclusive programs. When omitted, this field is
             treated as `null`. If this value is null for a qualifying
             non-exclusive program, that program does not impose any stacking
@@ -1140,12 +1142,13 @@ components:
         type:
           $ref: "#/components/schemas/ProgramRuleType"
         parameters:
-          default: {}
-          $ref: "#/components/schemas/ProgramRuleParameters"
           description: >
             Rule-specific parameters. May be omitted for rule types that
             require no parameters (e.g., date_range uses the program's own
             startDate/endDate).
+          default: {}
+          allOf:
+            - $ref: "#/components/schemas/ProgramRuleParameters"
       allOf:
         - if:
             required: [type]
@@ -1354,14 +1357,19 @@ components:
             $ref: "#/components/schemas/AppliedIncentive"
           description: >
             Benefits that would actually be applied after stacking rules
-            (one entry per benefit, not per program). May differ from
-            eligiblePrograms when exclusive rules or caps apply.
+            (one entry per benefit, not per program). Each entry's
+            `discountAmount` represents the final, cap-adjusted amount
+            that would be applied for that benefit. The sum of all
+            `projectedBenefits[*].discountAmount` equals `projectedDiscount`.
+            May differ from `eligiblePrograms` when exclusive rules or caps apply.
         projectedDiscount:
           type: number
           format: double
           description: >
-            Total discount amount that would be applied (positive value,
-            subtracted from `subtotalBeforeIncentives`)
+            Total discount amount that would be applied after all exclusivity
+            and stacking caps are enforced (positive value, subtracted from
+            `subtotalBeforeIncentives`). Equals the sum of all
+            `projectedBenefits[*].discountAmount`.
         projectedFinalPrice:
           type: number
           format: double
@@ -1432,7 +1440,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AppliedIncentive"
-          description: Each applied incentive with its discount amount
+          description: >
+            Each applied incentive with its cap-adjusted discount amount.
+            Each entry's `discountAmount` reflects the final amount after
+            any stacking cap is applied. The sum of all
+            `appliedIncentives[*].discountAmount` equals `totalIncentiveDiscount`.
         totalIncentiveDiscount:
           type: number
           format: double
@@ -1495,5 +1507,7 @@ components:
           type: number
           format: double
           description: >
-            Dollar amount discounted by this benefit (positive value,
-            subtracted from `subtotalBeforeIncentives`)
+            Final, cap-adjusted dollar amount discounted by this benefit
+            (positive value, subtracted from `subtotalBeforeIncentives`).
+            When a non-exclusive stacking cap is applied, this value reflects
+            the pro-rated amount, not the raw computed amount.
