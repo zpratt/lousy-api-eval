@@ -5,7 +5,6 @@ rules:
   # --- Structural Quality ---
   operation-operationId: error
   operation-operationId-unique: error
-  operation-summary: warn
   operation-description: warn
   operation-tags: warn
   path-params: error
@@ -29,9 +28,7 @@ rules:
   #       match: "^\/[a-z][a-z0-9-\/{}]*$"
 
   # --- Response Quality ---
-  operation-2xx-response:
-    severity: error
-    description: "Every operation must define at least one 2xx response."
+  operation-success-response: error
 
   # --- Description Quality ---
   info-description: warn
@@ -40,4 +37,4 @@ rules:
 
   # --- Server Configuration ---
   oas3-api-servers: warn
-  no-server-trailing-slash: error
+  oas3-server-trailing-slash: error

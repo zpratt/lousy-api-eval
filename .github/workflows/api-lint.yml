@@ -54,7 +54,6 @@ jobs:
             echo "::group::Linting $spec"
             spectral lint "$spec" \
               --format=github-actions \
-              --format=pretty \
               --fail-severity=error || EXIT_CODE=$?
             echo "::endgroup::"
           done <<< "${{ steps.find-specs.outputs.specs }}"

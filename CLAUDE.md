@@ -210,13 +210,12 @@ find . -name "*.openapi.yaml" -exec spectral lint {} \;
 | Rule | Fix |
 |------|-----|
 | `operation-operationId` | Add unique camelCase `operationId` derived from method + path |
-| `operation-summary` | Add short summary string to the operation |
 | `operation-description` | Add multi-sentence description of behavior and side effects |
 | `operation-tags` | Add at least one tag for doc grouping |
-| `operation-2xx-response` | Define a `200`, `201`, or `204` response |
+| `operation-success-response` | Define a `200`, `201`, or `204` response |
 | `oas3-operation-security-defined` | Reference a security scheme or use `security: []` for public |
 | `path-params` | Ensure every `{param}` in the path has a matching parameter definition |
-| `no-server-trailing-slash` | Remove trailing `/` from server URLs |
+| `oas3-server-trailing-slash` | Remove trailing `/` from server URLs |
 
 ### Quality standards
 

@@ -189,12 +189,11 @@ Severity levels: `0` = error, `1` = warning, `2` = info, `3` = hint.
 **When reasoning about how to fix a violation:**
 
 - `operation-operationId`: Every operation needs a unique `operationId`. Use camelCase, derived from the HTTP method and path (e.g. `GET /users/{id}` → `getUserById`).
-- `operation-summary`: Add a concise, human-readable summary to every operation.
 - `operation-description`: Add a longer description explaining what the operation does, when to use it, and any side effects.
 - `operation-tags`: Tag every operation for logical grouping in generated docs.
-- `operation-2xx-response`: Every operation must define at least one success response (200, 201, 204, etc.).
+- `operation-success-response`: Every operation must define at least one success response (200, 201, 204, etc.).
 - `oas3-operation-security-defined`: If the API uses security schemes, every operation should reference one or declare an empty security array for public endpoints.
-- `no-server-trailing-slash`: Server URLs must not end with `/`.
+- `oas3-server-trailing-slash`: Server URLs must not end with `/`.
 - `path-params`: Every path parameter in the URL template must have a corresponding parameter definition.
 - `oas3-valid-media-example`: Examples must validate against their schema.
 - `typed-enum`: Enum values should match the declared type of the property.
