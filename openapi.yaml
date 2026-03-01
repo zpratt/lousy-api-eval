@@ -372,7 +372,7 @@ paths:
                 notDraft:
                   summary: Options can only be removed from quotes in draft status
                   value:
-                    error: Options can only be removed from quotes in draft status
+                    error: "Options can only be removed from quotes in draft status"
 
   /quotes/{id}/calculate:
     post:
@@ -430,6 +430,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidRequest:
+                  summary: Missing or invalid status
+                  value:
+                    error: "Request body must include a valid \"status\" value"
         "409":
           description: Invalid status transition
           content:
@@ -1067,9 +1078,10 @@ components:
           description: >
             Maximum percentage of the total quote value that non-exclusive
             programs can discount in aggregate (e.g., 15.0 means 15%). Only
-            relevant for non-exclusive programs. If this value is null for a
-            qualifying non-exclusive program, that program does not impose any
-            stacking cap. When multiple qualifying non-exclusive programs define
+            relevant for non-exclusive programs. When omitted, this field is
+            treated as `null`. If this value is null for a qualifying
+            non-exclusive program, that program does not impose any stacking
+            cap. When multiple qualifying non-exclusive programs define
             different non-null caps, the lowest (most restrictive) cap governs
             the aggregate discount limit. If no qualifying non-exclusive
             program specifies a non-null cap, no aggregate stacking cap is
@@ -1350,8 +1362,8 @@ components:
           description: >
             Total dollar discount this program would produce for the current
             quote state (positive value, subtracted from total), aggregating
-            the impact of all of its benefits. See `projectedBenefits` for an
-            itemized per-benefit breakdown.
+            the impact of all of its benefits. See `IncentiveEvaluation.projectedBenefits`
+            for an itemized per-benefit breakdown.
 
     # ── Pricing Breakdown Schemas ───────────────────────────────────────────
 
