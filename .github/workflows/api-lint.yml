@@ -52,9 +52,8 @@ jobs:
           EXIT_CODE=0
           while IFS= read -r spec; do
             echo "::group::Linting $spec"
-            npx spectral lint "$spec" \
-              --format=github-actions \
-              --fail-severity=error || EXIT_CODE=$?
+            npm run lint:spectral -- "$spec" \
+              --format=github-actions || EXIT_CODE=$?
             echo "::endgroup::"
           done <<< "${{ steps.find-specs.outputs.specs }}"
           exit $EXIT_CODE
@@ -65,7 +64,7 @@ jobs:
           mkdir -p lint-results
           while IFS= read -r spec; do
             BASENAME=$(echo "$spec" | sed 's/[\/.]/_/g')
-            npx spectral lint "$spec" \
+            npm run lint:spectral -- "$spec" \
               --format=json \
               --output="lint-results/${BASENAME}.json" || true
           done <<< "${{ steps.find-specs.outputs.specs }}"

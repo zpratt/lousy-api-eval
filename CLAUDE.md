@@ -12,17 +12,18 @@ See `.github/specs/lousy-init-api-eval-spec.md` for the full evaluation spec, ta
 # Core commands
 npm test                    # Run unit tests (vitest)
 npm run test:e2e            # Run E2E acceptance tests against an API implementation
-npx @biomejs/biome lint .   # Lint this repo's code
-npx spectral lint path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
+npm run lint                # Lint this repo's code (Biome)
+npm run lint:spectral -- path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
+npm run lint:api            # MANDATORY: Structured Spectral report (auto-discovers specs)
 
 # File-scoped (faster feedback)
 npx biome check path/to/file.ts
 npm test path/to/file.test.ts
 
 # Validation suite (run before commits)
-npm test && npx @biomejs/biome lint .
+npm test && npm run lint
 # If OpenAPI specs exist or were modified:
-npx spectral lint path/to/openapi.yaml --fail-severity=error
+npm run lint:spectral -- path/to/openapi.yaml
 ```
 
 ---
@@ -38,7 +39,7 @@ Follow this sequence for ALL code changes. Work in small increments — one chan
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
 7. **Validate**: `npm test && npx @biomejs/biome lint .`
-8. **Validate OpenAPI specs** (if any exist or were modified): `npx spectral lint <spec-file> --fail-severity=error` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
+8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.
 
@@ -188,26 +189,26 @@ See @.github/instructions/pipeline.instructions.md for workflow structure requir
 
 This project enforces OpenAPI spec quality using Spectral. Spectral enforces both structural quality rules and **OWASP API Security Top 10 (2023)** rules — all at error severity.
 
-**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npx spectral lint <spec-file> --fail-severity=error` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
+**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npm run lint:spectral -- <spec-file>` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
 
 This repo pins the Spectral CLI version via `@stoplight/spectral-cli@6.15.0`. Always invoke Spectral through `npx` (or the `npm run lint:api` script) so local results match CI.
 
 ### Commands
 
 ```bash
-# Lint a spec (human-readable output)
-npx spectral lint path/to/openapi.yaml
+# Lint a specific spec (fails on errors)
+npm run lint:spectral -- path/to/openapi.yaml
 
 # Lint a spec (structured JSON for programmatic analysis)
-npx spectral lint path/to/openapi.yaml --format=json
+npm run lint:spectral -- path/to/openapi.yaml --format=json
 
-# Lint all specs in a directory
-find . -name "*.openapi.yaml" -exec npx spectral lint {} \;
+# Auto-discover and lint all specs with structured report
+npm run lint:api
 ```
 
 ### Workflow for modifying OpenAPI specs
 
-1. Run `npx spectral lint <file> --format=json` BEFORE and AFTER any changes.
+1. Run `npm run lint:spectral -- <file> --format=json` BEFORE and AFTER any changes.
 2. Parse the JSON output. Each item has `code` (rule name), `message`, `severity` (0=error, 1=warn), `path` (JSONPath to the violation), and `range` (line/column).
 3. Fix all severity 0 (error) violations. Address severity 1 (warning) violations when practical.
 4. Re-run lint after fixes to confirm resolution and catch regressions.
@@ -244,7 +245,7 @@ Spectral runs in CI via `.github/workflows/api-lint.yml` on every PR touching sp
 **Always do:**
 - Write tests before implementation (TDD)
 - Run lint and tests after every change
-- Run `npx spectral lint` on any OpenAPI spec file after every change — this is mandatory
+- Run `npm run lint:spectral` on any OpenAPI spec file after every change — this is mandatory
 - Run full validation before commits
 - Map E2E tests to scorecard dimensions
 - Use existing patterns from codebase

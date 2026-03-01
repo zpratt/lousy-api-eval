@@ -13,7 +13,11 @@
 
 import { execFileSync } from "node:child_process";
 import { readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SPECTRAL_BIN = resolve(__dirname, "..", "node_modules", ".bin", "spectral");
 
 const SPEC_PATTERNS = [
   /\.openapi\.ya?ml$/,
@@ -47,8 +51,8 @@ function findSpecs(dir, depth = 3) {
 function lintSpec(specPath) {
   try {
     const raw = execFileSync(
-      "npx",
-      ["spectral", "lint", specPath, "--format=json"],
+      SPECTRAL_BIN,
+      ["lint", specPath, "--format=json"],
       { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
     );
     return JSON.parse(raw || "[]");

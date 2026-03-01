@@ -14,17 +14,18 @@ Evaluation tooling for measuring the impact of GitHub Copilot instructions on RE
 # Core commands
 npm test                    # Run unit tests (vitest)
 npm run test:e2e            # Run E2E acceptance tests against an API implementation
-npx @biomejs/biome lint .   # Lint this repo's code
-npx spectral lint path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
+npm run lint                # Lint this repo's code (Biome)
+npm run lint:spectral -- path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
+npm run lint:api            # MANDATORY: Structured Spectral report (auto-discovers specs)
 
 # File-scoped (faster feedback)
 npx biome check path/to/file.ts
 npm test path/to/file.test.ts
 
 # Validation suite (run before commits)
-npm test && npx @biomejs/biome lint .
+npm test && npm run lint
 # If OpenAPI specs exist or were modified:
-npx spectral lint path/to/openapi.yaml --fail-severity=error
+npm run lint:spectral -- path/to/openapi.yaml
 ```
 
 ## Workflow: TDD Required
@@ -38,7 +39,7 @@ Follow this exact sequence for ALL code changes. Work in small increments — ma
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
 7. **Validate**: `npm test && npx @biomejs/biome lint .`
-8. **Validate OpenAPI specs** (if any exist or were modified): `npx spectral lint <spec-file> --fail-severity=error` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
+8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.
 
@@ -151,24 +152,24 @@ See `.github/instructions/test.instructions.md` for detailed conventions includi
 
 This project uses [Spectral](https://github.com/stoplightio/spectral) to lint and validate OpenAPI specifications. Spectral enforces both structural quality rules and **OWASP API Security Top 10 (2023)** rules — all at error severity.
 
-**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npx spectral lint <spec-file> --fail-severity=error` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
+**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npm run lint:spectral -- <spec-file>` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
 
 ### Running Spectral
 
 ```bash
-# Recommended: use the project's pinned Spectral via npx
-npx spectral lint path/to/openapi.yaml
+# Lint a specific spec (fails on errors)
+npm run lint:spectral -- path/to/openapi.yaml
 
 # Lint with JSON output for structured analysis
-npx spectral lint path/to/openapi.yaml --format=json
+npm run lint:spectral -- path/to/openapi.yaml --format=json
 
-# Lint with specific severity threshold
-npx spectral lint path/to/openapi.yaml --fail-severity=error
+# Auto-discover and lint all specs with structured report
+npm run lint:api
 ```
 
 ### When modifying or creating OpenAPI specs
 
-1. **Always run Spectral before committing.** Execute `npx spectral lint <spec-file>` and resolve all errors. Warnings should be addressed when practical.
+1. **Always run Spectral before committing.** Execute `npm run lint:spectral -- <spec-file>` and resolve all errors. Warnings should be addressed when practical.
 2. **Read the full Spectral output.** Each violation includes a rule name (e.g. `operation-operationId`), severity, file path, line number, and a human-readable message. Use these to understand _why_ something is wrong, not just _what_ is wrong.
 3. **Fix violations at the source.** Do not suppress rules unless there is a documented, legitimate reason. If a rule must be suppressed, add a comment in the spec explaining why.
 
@@ -205,7 +206,7 @@ Severity levels: `0` = error, `1` = warning, `2` = info, `3` = hint.
 
 When asked to improve or fix an OpenAPI spec:
 
-1. Run `npx spectral lint <file> --format=json` and capture the output.
+1. Run `npm run lint:spectral -- <file> --format=json` and capture the output.
 2. Group violations by rule name to understand systemic issues vs one-off mistakes.
 3. Fix errors first (severity 0), then warnings (severity 1).
 4. After making fixes, re-run Spectral to verify the fix didn't introduce new violations.
@@ -235,7 +236,7 @@ The Spectral configuration lives in `.spectral.yaml` at the repo root.
 **✅ Always do:**
 - Write tests before implementation (TDD)
 - Run lint and tests after every change
-- Run `npx spectral lint` on any OpenAPI spec file after every change — this is mandatory
+- Run `npm run lint:spectral` on any OpenAPI spec file after every change — this is mandatory
 - Run full validation before commits
 - Map E2E tests to scorecard dimensions
 - Use existing patterns from codebase
