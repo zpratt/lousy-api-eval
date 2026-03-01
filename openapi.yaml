@@ -1265,7 +1265,7 @@ components:
           description: >
             For `min_quote_total` rules: the quote's subtotal before incentives
             (`PricingBreakdown.subtotalBeforeIncentives` = baseMsrp + sum of
-            option line item prices − sum of package discount amounts
+            option line item prices - sum of package discount amounts
             + destinationCharge) must be strictly greater than (>) this value.
           examples: [45000]
         optionId:
@@ -1367,7 +1367,7 @@ components:
           format: double
           description: >
             Quote total after projected incentive discounts:
-            `subtotalBeforeIncentives` − `projectedDiscount`.
+            `subtotalBeforeIncentives` - `projectedDiscount`.
 
     EligibleProgram:
       type: object
