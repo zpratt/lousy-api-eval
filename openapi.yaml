@@ -1029,8 +1029,9 @@ components:
           type: number
           format: double
           description: >
-            Total package discount amount (positive value, subtracted from
-            total). Zero when no packages are fully present on the quote.
+            Total package discount amount (positive value, subtracted when
+            computing `totalPrice`). Zero when no packages are fully present
+            on the quote.
             Always present in the response (0 when no packages apply). This
             is an aggregated scalar total across all applicable packages. For
             an itemized per-package breakdown, see the `packageDiscounts` array
@@ -1224,15 +1225,17 @@ components:
 
         - `vehicle_model` — Quote's vehicle must be in the specified list.
         - `min_trim_level` — Quote's trim level must be at or above the minimum.
-        - `min_quote_total` — Quote total must exceed the threshold.
+        - `min_quote_total` — Quote's pre-incentive subtotal
+          (`subtotalBeforeIncentives`) must exceed the threshold.
         - `option_included` — A specific option must be on the quote.
         - `category_included` — At least one option from the category must be on the quote.
         - `date_range` — Quote's `createdAt` timestamp must fall within the
           program's active date range. Eligibility is always evaluated against
           the quote's persisted `createdAt` value, not the current wall-clock
           time at the point of evaluation or incentive application. The comparison
-          uses the date portion of `createdAt` in UTC (e.g., `"2025-06-01T23:59:59Z"`
-          is treated as date `"2025-06-01"` UTC) checked against the program's
+          uses the date portion of `createdAt` in UTC (for example,
+          `"2025-06-01T23:30:00-05:00"` is converted to `"2025-06-02T04:30:00Z"`
+          and treated as date `"2025-06-02"` UTC) checked against the program's
           `startDate`/`endDate` bounds (both inclusive).
 
     ProgramRuleParameters:
@@ -1261,9 +1264,9 @@ components:
           format: double
           description: >
             For `min_quote_total` rules: the quote's subtotal before incentives
-            (`PricingBreakdown.subtotalBeforeIncentives` = baseMsrp + optionsTotal
-            − packageDiscounts + destinationCharge) must be strictly greater than
-            (>) this value.
+            (`PricingBreakdown.subtotalBeforeIncentives` = baseMsrp + sum of
+            option line item prices − sum of package discount amounts
+            + destinationCharge) must be strictly greater than (>) this value.
           examples: [45000]
         optionId:
           type: string
@@ -1327,7 +1330,8 @@ components:
       description: >
         Benefit types:
 
-        - `flat_discount` — Flat dollar amount off the quote total.
+        - `flat_discount` — Flat dollar amount subtracted from the pre-incentive
+          subtotal (`subtotalBeforeIncentives`).
         - `percentage_msrp` — Percentage discount off the base MSRP (not total).
         - `percentage_category` — Percentage discount off options in a specific category.
 
@@ -1357,11 +1361,13 @@ components:
           format: double
           description: >
             Total discount amount that would be applied (positive value,
-            subtracted from subtotal)
+            subtracted from `subtotalBeforeIncentives`)
         projectedFinalPrice:
           type: number
           format: double
-          description: Quote total after projected incentive discounts
+          description: >
+            Quote total after projected incentive discounts:
+            `subtotalBeforeIncentives` − `projectedDiscount`.
 
     EligibleProgram:
       type: object
@@ -1469,7 +1475,7 @@ components:
           format: double
           description: >
             The dollar amount discounted for this package (positive value,
-            subtracted from total)
+            subtracted when computing `subtotalBeforeIncentives`)
 
     AppliedIncentive:
       type: object
@@ -1490,4 +1496,4 @@ components:
           format: double
           description: >
             Dollar amount discounted by this benefit (positive value,
-            subtracted from subtotal)
+            subtracted from `subtotalBeforeIncentives`)
