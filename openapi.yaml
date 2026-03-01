@@ -327,7 +327,7 @@ paths:
                 trimRestriction:
                   summary: Trim restriction
                   value:
-                    error: "Option \"Performance Exhaust\" is only available on Sport trim and above"
+                    error: "Option \"Performance Exhaust\" is only available on specific trim levels"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -1343,10 +1343,19 @@ components:
 
     IncentiveEvaluation:
       type: object
-      required: [quoteId, eligiblePrograms, projectedBenefits, projectedDiscount, projectedFinalPrice]
+      required: [quoteId, subtotalBeforeIncentives, eligiblePrograms, projectedBenefits, projectedDiscount, projectedFinalPrice]
       properties:
         quoteId:
           type: string
+        subtotalBeforeIncentives:
+          type: number
+          format: double
+          description: >
+            The quote's pre-incentive subtotal at the time of evaluation:
+            baseMsrp + sum(options) - sum(packageDiscounts) + destinationCharge.
+            Use this alongside `projectedDiscount` and `projectedFinalPrice` to
+            present a complete "current price vs. price with incentives" view
+            without requiring an additional call to POST /quotes/{id}/calculate.
         eligiblePrograms:
           type: array
           items:
@@ -1510,5 +1519,15 @@ components:
           description: >
             Final, cap-adjusted dollar amount discounted by this benefit
             (positive value, subtracted from `subtotalBeforeIncentives`).
-            When a non-exclusive stacking cap is applied, this value reflects
-            the pro-rated amount, not the raw computed amount.
+            When a non-exclusive stacking cap is applied across multiple
+            stackable benefits, this value is pro-rated proportionally based
+            on the benefit's raw (uncapped) discount amount: each benefit's
+            `discountAmount` is computed as
+            `rawDiscountAmount / sumOfAllRawDiscountAmounts × cappedTotalDiscount`,
+            subject to normal currency rounding rules, rather than using the
+            raw computed amount.
+        categoryId:
+          type: ["string", "null"]
+          description: >
+            For `percentage_category` benefits: the ID of the option category
+            that was discounted. Null or absent for other benefit types.
