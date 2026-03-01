@@ -609,10 +609,11 @@ paths:
         - **Non-exclusive programs**: Stack additively. When one or more
           qualifying non-exclusive programs specify a non-null `stackingCap`,
           the total discount from all non-exclusive programs is capped at the
-          lowest (most restrictive) non-null cap as a percentage of
-          `PricingBreakdown.subtotalBeforeIncentives` (the quote total before
-          any incentives are applied). If no qualifying non-exclusive program
-          has a non-null `stackingCap`, no aggregate cap is applied.
+          lowest (most restrictive) non-null cap as a percentage of the full
+          pre-discount quote total (baseMsrp + sum of option prices +
+          destinationCharge, before any package discounts or incentives are
+          applied). If no qualifying non-exclusive program has a non-null
+          `stackingCap`, no aggregate cap is applied.
 
         **Idempotency**: If this endpoint is called more than once on the same
         quote, previously applied incentives are replaced by the newly computed
@@ -1103,7 +1104,7 @@ components:
 
     IncentiveProgram:
       type: object
-      required: [id, name, startDate, endDate, exclusive, rules, benefits]
+      required: [id, name, startDate, endDate, exclusive, stackingCap, rules, benefits]
       properties:
         id:
           type: string
