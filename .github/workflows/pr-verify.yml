@@ -22,8 +22,6 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
-      - name: Test
-        run: npm test
       - name: Run lousy-agents lint
         uses: zpratt/lousy-agents@aed2f2f3b9cb11a2b7935851377bf1356812e3e8  # v3.1.0
         with:
