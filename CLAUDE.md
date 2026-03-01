@@ -38,7 +38,7 @@ Follow this sequence for ALL code changes. Work in small increments — one chan
 4. **Implement minimal code**: Write just enough to pass
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
-7. **Validate**: `npm test && npx @biomejs/biome lint .`
+7. **Validate**: `npm test && npm run lint`
 8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.
@@ -191,7 +191,7 @@ This project enforces OpenAPI spec quality using Spectral. Spectral enforces bot
 
 **⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npm run lint:spectral -- <spec-file>` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
 
-This repo pins the Spectral CLI version via `@stoplight/spectral-cli@6.15.0`. Always invoke Spectral through `npx` (or the `npm run lint:api` script) so local results match CI.
+This repo pins the Spectral CLI version via `@stoplight/spectral-cli@6.15.0`. Always invoke Spectral through the provided npm scripts (`npm run lint:spectral` / `npm run lint:api`) so local results match CI.
 
 ### Commands
 

@@ -38,7 +38,7 @@ Follow this exact sequence for ALL code changes. Work in small increments — ma
 4. **Implement minimal code**: Write just enough to pass
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
-7. **Validate**: `npm test && npx @biomejs/biome lint .`
+7. **Validate**: `npm test && npm run lint`
 8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.

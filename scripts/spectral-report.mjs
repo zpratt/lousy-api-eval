@@ -17,7 +17,13 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SPECTRAL_BIN = resolve(__dirname, "..", "node_modules", ".bin", "spectral");
+const REPO_ROOT = resolve(__dirname, "..");
+const SPECTRAL_BIN =
+  process.platform === "win32"
+    ? resolve(REPO_ROOT, "node_modules", ".bin", "spectral.cmd")
+    : resolve(REPO_ROOT, "node_modules", ".bin", "spectral");
+
+const SEVERITY_LABELS = { 0: "error", 1: "warning", 2: "info", 3: "hint" };
 
 const SPEC_PATTERNS = [
   /\.openapi\.ya?ml$/,
@@ -53,7 +59,7 @@ function lintSpec(specPath) {
     const raw = execFileSync(
       SPECTRAL_BIN,
       ["lint", specPath, "--fail-severity=error", "--format=json"],
-      { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
+      { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"], cwd: REPO_ROOT },
     );
     return JSON.parse(raw || "[]");
   } catch (err) {
@@ -106,7 +112,7 @@ function summarize(specPath, violations) {
       .sort(([, a], [, b]) => a.severity - b.severity || b.count - a.count)
       .map(([rule, data]) => ({
         rule,
-        severity: data.severity === 0 ? "error" : "warning",
+        severity: SEVERITY_LABELS[data.severity] ?? "unknown",
         count: data.count,
         locations: data.locations.slice(0, 5),
         ...(data.locations.length > 5 && {
@@ -118,7 +124,7 @@ function summarize(specPath, violations) {
 
 // --- Main ---
 const args = process.argv.slice(2);
-const specs = args.length > 0 ? args.map((a) => resolve(a)) : findSpecs(".");
+const specs = args.length > 0 ? args.map((a) => resolve(a)) : findSpecs(REPO_ROOT);
 
 if (specs.length === 0) {
   // biome-ignore lint/suspicious/noConsole: CLI script requires stdout/stderr
