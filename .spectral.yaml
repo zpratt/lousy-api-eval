@@ -1,0 +1,43 @@
+extends:
+  - "spectral:oas"
+
+rules:
+  # --- Structural Quality ---
+  operation-operationId: error
+  operation-operationId-unique: error
+  operation-summary: warn
+  operation-description: warn
+  operation-tags: warn
+  path-params: error
+  no-eval-in-markdown: error
+  no-script-tags-in-markdown: error
+  typed-enum: warn
+  oas3-valid-media-example: warn
+  oas3-valid-schema-example: warn
+
+  # --- Security ---
+  oas3-operation-security-defined: error
+
+  # --- Naming Conventions (customize to your style) ---
+  # Uncomment and adjust as needed:
+  # path-casing:
+  #   severity: error
+  #   given: "$.paths"
+  #   then:
+  #     function: pattern
+  #     functionOptions:
+  #       match: "^\/[a-z][a-z0-9-\/{}]*$"
+
+  # --- Response Quality ---
+  operation-2xx-response:
+    severity: error
+    description: "Every operation must define at least one 2xx response."
+
+  # --- Description Quality ---
+  info-description: warn
+  info-contact: warn
+  info-license: off
+
+  # --- Server Configuration ---
+  oas3-api-servers: warn
+  no-server-trailing-slash: error

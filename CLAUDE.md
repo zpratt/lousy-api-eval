@@ -180,6 +180,58 @@ See @.github/instructions/pipeline.instructions.md for workflow structure requir
 
 ---
 
+## OpenAPI Linting with Spectral
+
+This project enforces OpenAPI spec quality using Spectral. All OpenAPI specifications must pass `spectral lint` with zero errors before being committed.
+
+### Commands
+
+```bash
+# Lint a spec (human-readable output)
+spectral lint path/to/openapi.yaml
+
+# Lint a spec (structured JSON for programmatic analysis)
+spectral lint path/to/openapi.yaml --format=json
+
+# Lint all specs in a directory
+find . -name "*.openapi.yaml" -exec spectral lint {} \;
+```
+
+### Workflow for modifying OpenAPI specs
+
+1. Run `spectral lint <file> --format=json` BEFORE and AFTER any changes.
+2. Parse the JSON output. Each item has `code` (rule name), `message`, `severity` (0=error, 1=warn), `path` (JSONPath to the violation), and `range` (line/column).
+3. Fix all severity 0 (error) violations. Address severity 1 (warning) violations when practical.
+4. Re-run lint after fixes to confirm resolution and catch regressions.
+5. If a rule must be skipped for a legitimate reason, document the rationale in a code comment adjacent to the suppressed element.
+
+### Common rule fixes
+
+| Rule | Fix |
+|------|-----|
+| `operation-operationId` | Add unique camelCase `operationId` derived from method + path |
+| `operation-summary` | Add short summary string to the operation |
+| `operation-description` | Add multi-sentence description of behavior and side effects |
+| `operation-tags` | Add at least one tag for doc grouping |
+| `operation-2xx-response` | Define a `200`, `201`, or `204` response |
+| `oas3-operation-security-defined` | Reference a security scheme or use `security: []` for public |
+| `path-params` | Ensure every `{param}` in the path has a matching parameter definition |
+| `no-server-trailing-slash` | Remove trailing `/` from server URLs |
+
+### Quality standards
+
+- Extract shared schemas to `components/schemas` using `$ref`
+- Provide `example` values on schemas, parameters, and response bodies
+- Define `4xx`/`5xx` error responses with proper schemas
+- Use semver for `info.version`
+- Maintain consistent naming: camelCase for JSON properties, kebab-case for URL paths
+
+### CI
+
+Spectral runs in CI via `.github/workflows/api-lint.yml` on every PR touching spec files. Configuration is in `.spectral.yaml` at the repo root.
+
+---
+
 ## Boundaries
 
 **Always do:**

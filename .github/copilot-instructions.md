@@ -143,6 +143,91 @@ See `.github/instructions/test.instructions.md` for detailed conventions includi
 - Use explicit version numbers: `npm install <package>@<exact-version>`
 - Run `npm audit` after any dependency change
 
+## OpenAPI Specification Linting with Spectral
+
+This project uses [Spectral](https://github.com/stoplightio/spectral) to lint and validate OpenAPI specifications. Any changes to OpenAPI spec files **must** pass Spectral linting before merge.
+
+### Running Spectral
+
+```bash
+# Install (if not already available)
+npm install -g @stoplight/spectral-cli
+
+# Lint a single spec
+spectral lint path/to/openapi.yaml
+
+# Lint with JSON output for structured analysis
+spectral lint path/to/openapi.yaml --format=json
+
+# Lint with specific severity threshold
+spectral lint path/to/openapi.yaml --fail-severity=error
+```
+
+### When modifying or creating OpenAPI specs
+
+1. **Always run Spectral before committing.** Execute `spectral lint <spec-file>` and resolve all errors. Warnings should be addressed when practical.
+2. **Read the full Spectral output.** Each violation includes a rule name (e.g. `operation-operationId`), severity, file path, line number, and a human-readable message. Use these to understand _why_ something is wrong, not just _what_ is wrong.
+3. **Fix violations at the source.** Do not suppress rules unless there is a documented, legitimate reason. If a rule must be suppressed, add a comment in the spec explaining why.
+
+### Interpreting Spectral results
+
+Spectral JSON output is an array of objects with this structure:
+
+```json
+{
+  "code": "rule-name",
+  "path": ["paths", "/example", "get", "responses"],
+  "message": "Human-readable description of the problem",
+  "severity": 0,
+  "range": { "start": { "line": 10, "character": 6 }, "end": { "line": 10, "character": 20 } },
+  "source": "path/to/openapi.yaml"
+}
+```
+
+Severity levels: `0` = error, `1` = warning, `2` = info, `3` = hint.
+
+**When reasoning about how to fix a violation:**
+
+- `operation-operationId`: Every operation needs a unique `operationId`. Use camelCase, derived from the HTTP method and path (e.g. `GET /users/{id}` → `getUserById`).
+- `operation-summary`: Add a concise, human-readable summary to every operation.
+- `operation-description`: Add a longer description explaining what the operation does, when to use it, and any side effects.
+- `operation-tags`: Tag every operation for logical grouping in generated docs.
+- `operation-2xx-response`: Every operation must define at least one success response (200, 201, 204, etc.).
+- `oas3-operation-security-defined`: If the API uses security schemes, every operation should reference one or declare an empty security array for public endpoints.
+- `no-server-trailing-slash`: Server URLs must not end with `/`.
+- `path-params`: Every path parameter in the URL template must have a corresponding parameter definition.
+- `oas3-valid-media-example`: Examples must validate against their schema.
+- `typed-enum`: Enum values should match the declared type of the property.
+
+### Iterative refinement workflow
+
+When asked to improve or fix an OpenAPI spec:
+
+1. Run `spectral lint <file> --format=json` and capture the output.
+2. Group violations by rule name to understand systemic issues vs one-off mistakes.
+3. Fix errors first (severity 0), then warnings (severity 1).
+4. After making fixes, re-run Spectral to verify the fix didn't introduce new violations.
+5. Repeat until clean or until only intentionally-suppressed warnings remain.
+
+### Spec quality guidelines beyond linting
+
+Spectral catches structural issues, but also apply these principles:
+
+- **Use `$ref` for reusable schemas.** Don't duplicate schema definitions. Extract shared models into `components/schemas`.
+- **Provide examples.** Add `example` or `examples` to schemas, parameters, and response bodies. These power documentation and mocking.
+- **Use descriptive error responses.** Define `4xx` and `5xx` responses with schema definitions, not just status codes.
+- **Semantic versioning.** The `info.version` field should follow semver (e.g. `1.2.0`).
+- **Consistent naming.** Use camelCase for JSON property names, kebab-case for URL paths, and UPPER_SNAKE_CASE for enum values (or match whatever convention is already established in the spec).
+
+### CI integration
+
+The `.github/workflows/api-lint.yml` workflow runs Spectral on every PR that touches OpenAPI spec files. It:
+- Produces GitHub Actions annotations on the PR (inline error/warning markers)
+- Uploads JSON lint results as a build artifact
+- Fails the check if any errors are found
+
+The Spectral configuration lives in `.spectral.yaml` at the repo root.
+
 ## Boundaries
 
 **✅ Always do:**
