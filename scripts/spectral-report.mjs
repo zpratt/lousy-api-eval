@@ -47,21 +47,25 @@ function findSpecs(dir, depth = 3) {
 function lintSpec(specPath) {
   try {
     const raw = execFileSync(
-      "spectral",
-      ["lint", specPath, "--format=json"],
+      "npx",
+      ["spectral", "lint", specPath, "--format=json"],
       { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
     );
     return JSON.parse(raw || "[]");
   } catch (err) {
-    // Spectral exits non-zero when there are errors — that's expected
-    if (err.stdout) {
+    // Spectral exits non-zero when there are lint violations — that's expected.
+    // In that case, it still prints JSON to stdout that we can parse.
+    if (err && typeof err === "object" && "stdout" in err && err.stdout) {
       try {
         return JSON.parse(err.stdout);
       } catch {
-        return [];
+        // Spectral ran but printed non-JSON; treat as a tool failure.
+        throw err;
       }
     }
-    return [];
+    // Spectral could not be executed at all (e.g. ENOENT) or
+    // did not produce usable JSON output. Propagate the failure.
+    throw err;
   }
 }
 
@@ -78,7 +82,10 @@ function summarize(specPath, violations) {
     byRule[v.code].count++;
     byRule[v.code].locations.push({
       path: v.path.join("."),
-      line: v.range?.start?.line + 1,
+      line:
+        typeof v.range?.start?.line === "number"
+          ? v.range.start.line + 1
+          : null,
       message: v.message,
     });
   }
@@ -114,7 +121,7 @@ if (specs.length === 0) {
   console.error(
     "No OpenAPI spec files found. Pass a path or name files *.openapi.yaml",
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 const results = specs.map((spec) => {

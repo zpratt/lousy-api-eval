@@ -150,22 +150,19 @@ This project uses [Spectral](https://github.com/stoplightio/spectral) to lint an
 ### Running Spectral
 
 ```bash
-# Install (if not already available)
-npm install -g @stoplight/spectral-cli
-
-# Lint a single spec
-spectral lint path/to/openapi.yaml
+# Recommended: use the project's pinned Spectral via npx
+npx spectral lint path/to/openapi.yaml
 
 # Lint with JSON output for structured analysis
-spectral lint path/to/openapi.yaml --format=json
+npx spectral lint path/to/openapi.yaml --format=json
 
 # Lint with specific severity threshold
-spectral lint path/to/openapi.yaml --fail-severity=error
+npx spectral lint path/to/openapi.yaml --fail-severity=error
 ```
 
 ### When modifying or creating OpenAPI specs
 
-1. **Always run Spectral before committing.** Execute `spectral lint <spec-file>` and resolve all errors. Warnings should be addressed when practical.
+1. **Always run Spectral before committing.** Execute `npx spectral lint <spec-file>` and resolve all errors. Warnings should be addressed when practical.
 2. **Read the full Spectral output.** Each violation includes a rule name (e.g. `operation-operationId`), severity, file path, line number, and a human-readable message. Use these to understand _why_ something is wrong, not just _what_ is wrong.
 3. **Fix violations at the source.** Do not suppress rules unless there is a documented, legitimate reason. If a rule must be suppressed, add a comment in the spec explaining why.
 
@@ -202,7 +199,7 @@ Severity levels: `0` = error, `1` = warning, `2` = info, `3` = hint.
 
 When asked to improve or fix an OpenAPI spec:
 
-1. Run `spectral lint <file> --format=json` and capture the output.
+1. Run `npx spectral lint <file> --format=json` and capture the output.
 2. Group violations by rule name to understand systemic issues vs one-off mistakes.
 3. Fix errors first (severity 0), then warnings (severity 1).
 4. After making fixes, re-run Spectral to verify the fix didn't introduce new violations.

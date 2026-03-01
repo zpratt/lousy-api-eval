@@ -184,22 +184,24 @@ See @.github/instructions/pipeline.instructions.md for workflow structure requir
 
 This project enforces OpenAPI spec quality using Spectral. All OpenAPI specifications must pass `spectral lint` with zero errors before being committed.
 
+This repo pins the Spectral CLI version via `@stoplight/spectral-cli@6.15.0`. Always invoke Spectral through `npx` (or the `npm run lint:api` script) so local results match CI.
+
 ### Commands
 
 ```bash
 # Lint a spec (human-readable output)
-spectral lint path/to/openapi.yaml
+npx spectral lint path/to/openapi.yaml
 
 # Lint a spec (structured JSON for programmatic analysis)
-spectral lint path/to/openapi.yaml --format=json
+npx spectral lint path/to/openapi.yaml --format=json
 
 # Lint all specs in a directory
-find . -name "*.openapi.yaml" -exec spectral lint {} \;
+find . -name "*.openapi.yaml" -exec npx spectral lint {} \;
 ```
 
 ### Workflow for modifying OpenAPI specs
 
-1. Run `spectral lint <file> --format=json` BEFORE and AFTER any changes.
+1. Run `npx spectral lint <file> --format=json` BEFORE and AFTER any changes.
 2. Parse the JSON output. Each item has `code` (rule name), `message`, `severity` (0=error, 1=warn), `path` (JSONPath to the violation), and `range` (line/column).
 3. Fix all severity 0 (error) violations. Address severity 1 (warning) violations when practical.
 4. Re-run lint after fixes to confirm resolution and catch regressions.

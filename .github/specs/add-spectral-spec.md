@@ -17,14 +17,11 @@ This document contains everything needed to add Spectral API linting to your pro
 ### Quick start
 
 ```bash
-# Install Spectral globally
-npm install -g @stoplight/spectral-cli
-
-# Or add as a dev dependency
-npm install --save-dev @stoplight/spectral-cli
+# Install as a dev dependency (pinned version for reproducible linting)
+npm install --save-dev @stoplight/spectral-cli@6.15.0
 
 # Lint your spec
-spectral lint openapi.yaml
+npx spectral lint openapi.yaml
 
 # Use the structured reporter (better for agents)
 node scripts/spectral-report.mjs openapi.yaml
