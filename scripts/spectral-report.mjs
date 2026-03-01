@@ -52,12 +52,12 @@ function lintSpec(specPath) {
   try {
     const raw = execFileSync(
       SPECTRAL_BIN,
-      ["lint", specPath, "--format=json"],
+      ["lint", specPath, "--fail-severity=error", "--format=json"],
       { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
     );
     return JSON.parse(raw || "[]");
   } catch (err) {
-    // Spectral exits non-zero when there are lint violations — that's expected.
+    // Spectral exits non-zero when there are lint violations at error severity — that's expected.
     // In that case, it still prints JSON to stdout that we can parse.
     if (err && typeof err === "object" && "stdout" in err && err.stdout) {
       try {
