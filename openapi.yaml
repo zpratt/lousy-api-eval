@@ -1230,15 +1230,20 @@ components:
         - `date_range` — Quote's `createdAt` timestamp must fall within the
           program's active date range. Eligibility is always evaluated against
           the quote's persisted `createdAt` value, not the current wall-clock
-          time at the point of evaluation or incentive application.
+          time at the point of evaluation or incentive application. The comparison
+          uses the date portion of `createdAt` in UTC (e.g., `"2025-06-01T23:59:59Z"`
+          is treated as date `"2025-06-01"` UTC) checked against the program's
+          `startDate`/`endDate` bounds (both inclusive).
 
     ProgramRuleParameters:
       type: object
       description: >
         Parameters vary by rule type. Include only the fields relevant to the
         rule type. The `date_range` rule type requires no additional parameters
-        here — it evaluates eligibility using the quote's persisted `createdAt`
-        timestamp against the program's own `startDate`/`endDate` fields.
+        here — it evaluates eligibility using the date portion of the quote's
+        persisted `createdAt` timestamp in UTC against the program's own
+        `startDate`/`endDate` fields (both bounds inclusive). The current
+        evaluation or incentive application time is not used.
       properties:
         vehicleIds:
           type: array
@@ -1255,8 +1260,10 @@ components:
           type: number
           format: double
           description: >
-            For `min_quote_total` rules: the quote total must be strictly
-            greater than (>) this value.
+            For `min_quote_total` rules: the quote's subtotal before incentives
+            (`PricingBreakdown.subtotalBeforeIncentives` = baseMsrp + optionsTotal
+            − packageDiscounts + destinationCharge) must be strictly greater than
+            (>) this value.
           examples: [45000]
         optionId:
           type: string
@@ -1288,6 +1295,7 @@ components:
         properties:
           type:
             const: percentage_category
+        required: [type]
       then:
         required: [categoryId]
         properties:
