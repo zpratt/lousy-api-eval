@@ -7,19 +7,23 @@ info:
     package pricing, and manufacturer incentive programs.
   version: 1.0.0
 
+  contact:
+    name: API Support
+    email: api-support@example.com
 servers:
-  - url: http://localhost:3000
-    description: Local development server
+- url: https://localhost:3000
+  description: Local development server
 
+  x-internal: true
 tags:
-  - name: Vehicles
-    description: Vehicle models and trim levels
-  - name: Options
-    description: Vehicle options and option categories
-  - name: Quotes
-    description: Quote creation, configuration, pricing, and lifecycle
-  - name: Incentive Programs
-    description: Manufacturer incentive programs, rules, and benefits
+- name: Vehicles
+  description: Vehicle models and trim levels
+- name: Options
+  description: Vehicle options and option categories
+- name: Quotes
+  description: Quote creation, configuration, pricing, and lifecycle
+- name: Incentive Programs
+  description: Manufacturer incentive programs, rules, and benefits
 
 paths:
   # ── Vehicles ────────────────────────────────────────────────────────────────
@@ -42,9 +46,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Vehicle"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      description: Registers a new vehicle model (make, model, year) in the system with its destination charge.
     get:
       operationId: listVehicles
       tags: [Vehicles]
@@ -59,13 +98,51 @@ paths:
                 items:
                   $ref: "#/components/schemas/Vehicle"
 
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all registered vehicle models. Use this to browse the available model lineup.
   /vehicles/{id}:
     get:
       operationId: getVehicle
       tags: [Vehicles]
       summary: Get a vehicle model by ID
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Vehicle details
@@ -73,16 +150,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Vehicle"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Retrieves a single vehicle model by its unique identifier, including the destination charge.
   /vehicles/{vehicleId}/trims:
     post:
       operationId: createTrim
       tags: [Vehicles]
       summary: Create a trim level for a vehicle
       parameters:
-        - $ref: "#/components/parameters/VehicleId"
+      - $ref: "#/components/parameters/VehicleId"
       requestBody:
         required: true
         content:
@@ -96,17 +210,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Trim"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      description: Creates a new trim level for the specified vehicle model with a name, numeric level, and base MSRP.
     get:
       operationId: listTrims
       tags: [Vehicles]
       summary: List trim levels for a vehicle
       parameters:
-        - $ref: "#/components/parameters/VehicleId"
+      - $ref: "#/components/parameters/VehicleId"
       responses:
         "200":
           description: List of trims
@@ -116,11 +265,49 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Trim"
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
   # ── Options ─────────────────────────────────────────────────────────────────
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all trim levels defined for the specified vehicle model, ordered by level.
   /option-categories:
     post:
       operationId: createOptionCategory
@@ -139,9 +326,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OptionCategory"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      description: Creates a new option category for grouping related vehicle options (e.g., Technology, Appearance).
     get:
       operationId: listOptionCategories
       tags: [Options]
@@ -156,6 +378,44 @@ paths:
                 items:
                   $ref: "#/components/schemas/OptionCategory"
 
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all option categories defined in the system.
   /options:
     post:
       operationId: createOption
@@ -179,11 +439,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Option"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     get:
       operationId: listOptions
       tags: [Options]
@@ -198,13 +492,52 @@ paths:
                 items:
                   $ref: "#/components/schemas/Option"
 
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all vehicle options including their compatibility rules, pricing type, and package 
+        membership.
   /options/{id}:
     get:
       operationId: getOption
       tags: [Options]
       summary: Get an option by ID
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Option details
@@ -212,11 +545,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Option"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
   # ── Quotes ──────────────────────────────────────────────────────────────────
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Retrieves a single vehicle option by ID including its dependencies, exclusions, and trim 
+        restrictions.
   /quotes:
     post:
       operationId: createQuote
@@ -237,11 +608,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     get:
       operationId: listQuotes
       tags: [Quotes]
@@ -256,13 +661,52 @@ paths:
                 items:
                   $ref: "#/components/schemas/Quote"
 
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all quotes across all statuses. Each quote includes its current options and applied 
+        incentives.
   /quotes/{id}:
     get:
       operationId: getQuote
       tags: [Quotes]
       summary: Get a quote by ID
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Quote details
@@ -270,9 +714,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Retrieves a single quote by ID including its status, options, applied incentives, and timestamps.
   /quotes/{id}/options:
     post:
       operationId: addQuoteOption
@@ -293,7 +774,7 @@ paths:
 
         - **Status check**: Only quotes in draft status can be modified.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -307,6 +788,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           description: >
             Compatibility rule violation. The response body includes a specific
@@ -323,11 +832,40 @@ paths:
                 exclusionViolation:
                   summary: Exclusion conflict
                   value:
-                    error: "Option \"Standard Audio\" cannot be added because it excludes \"Premium Audio System\" which is already on the quote"
+                    error: "Option \"Standard Audio\" cannot be added because it excludes \"Premium Audio System\" which is
+                      already on the quote"
                 trimRestriction:
                   summary: Trim restriction
                   value:
                     error: "Option \"Performance Exhaust\" is only available on specific trim levels"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -342,6 +880,40 @@ paths:
                   value:
                     error: "Options can only be added to quotes in draft status"
 
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /quotes/{id}/options/{optionId}:
     delete:
       operationId: removeQuoteOption
@@ -351,13 +923,15 @@ paths:
         Removes an option from the quote. Only quotes in draft status can be
         modified.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
-        - name: optionId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: The ID of the option to remove
+      - $ref: "#/components/parameters/ResourceId"
+      - name: optionId
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+        description: The ID of the option to remove
       responses:
         "200":
           description: Option removed from quote
@@ -365,6 +939,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -381,6 +983,40 @@ paths:
                   value:
                     error: "Options can only be removed from quotes in draft status"
 
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /quotes/{id}/calculate:
     post:
       operationId: calculateQuote
@@ -397,7 +1033,7 @@ paths:
         - **Destination charge**: Flat fee configured per vehicle model, added
           as a separate line item (not an option)
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Pricing calculated
@@ -405,9 +1041,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuotePricing"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /quotes/{id}/transition:
     post:
       operationId: transitionQuoteStatus
@@ -423,7 +1095,7 @@ paths:
         Accepted quotes cannot be modified or reverted. Only draft quotes can
         have options added or removed.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -437,6 +1109,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           description: Invalid request body
           content:
@@ -448,6 +1148,34 @@ paths:
                   summary: Missing or invalid status
                   value:
                     error: "Request body must include a valid \"status\" value"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "409":
           description: Invalid status transition
           content:
@@ -459,11 +1187,45 @@ paths:
                   summary: Invalid transition
                   value:
                     error: "Cannot transition from \"accepted\" to \"draft\""
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
   # ── Incentive Programs ──────────────────────────────────────────────────────
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /incentive-programs:
     post:
       operationId: createIncentiveProgram
@@ -482,9 +1244,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IncentiveProgram"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      description: Creates a new incentive program with date bounds, exclusivity setting, and an optional stacking cap.
     get:
       operationId: listIncentivePrograms
       tags: [Incentive Programs]
@@ -499,13 +1296,51 @@ paths:
                 items:
                   $ref: "#/components/schemas/IncentiveProgram"
 
+                maxItems: 100
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Returns all incentive programs including their rules and benefits.
   /incentive-programs/{id}:
     get:
       operationId: getIncentiveProgram
       tags: [Incentive Programs]
       summary: Get an incentive program by ID
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Program details
@@ -513,9 +1348,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IncentiveProgram"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      description: Retrieves a single incentive program by ID including its eligibility rules and benefits.
   /incentive-programs/{id}/rules:
     post:
       operationId: addProgramRule
@@ -525,7 +1397,7 @@ paths:
         Adds a rule that must be satisfied for a quote to qualify for this
         program. All rules on a program use AND logic — every rule must pass.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -539,18 +1411,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProgramRule"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /incentive-programs/{id}/benefits:
     post:
       operationId: addProgramBenefit
       tags: [Incentive Programs]
       summary: Add a benefit to a program
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -564,11 +1470,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProgramBenefit"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      description: Adds a benefit (discount) to the program. Each program can have multiple benefits of different types.
   /quotes/{id}/evaluate-incentives:
     post:
       operationId: evaluateIncentives
@@ -582,7 +1523,7 @@ paths:
         Returns eligible programs, their computed discount amounts, and the
         projected final price after stacking rules are applied.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Eligibility evaluation results
@@ -590,9 +1531,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IncentiveEvaluation"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /quotes/{id}/apply-incentives:
     post:
       operationId: applyIncentives
@@ -624,7 +1601,7 @@ paths:
         `draft` status. Attempting to apply incentives to a quote in any other
         status (`presented`, `accepted`, or `expired`) will return a `409 Conflict` error.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Incentives applied
@@ -632,6 +1609,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -646,6 +1651,42 @@ paths:
                   value:
                     error: "Incentives can only be applied to quotes in draft status"
 
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /quotes/{id}/pricing-breakdown:
     get:
       operationId: getPricingBreakdown
@@ -657,7 +1698,7 @@ paths:
         subtotal before incentives, each applied incentive with its name and
         discount amount, and the final price.
       parameters:
-        - $ref: "#/components/parameters/ResourceId"
+      - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Full pricing breakdown
@@ -665,9 +1706,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PricingBreakdown"
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum number of requests per time window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
+              schema:
+                type: integer
+                format: int32
+                minimum: 0
+                maximum: 1000000
+            X-RateLimit-Reset:
+              description: UTC epoch seconds when the current window resets
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                maximum: 9999999999
+            Access-Control-Allow-Origin:
+              description: Indicates which origins are allowed to access the resource
+              schema:
+                type: string
+                maxLength: 255
+                pattern: ^https?://[\w\-\.]+(:\d+)?$
         "404":
           $ref: "#/components/responses/NotFound"
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '400':
+          $ref: '#/components/responses/BadRequest'
 components:
   # ── Parameters ──────────────────────────────────────────────────────────────
 
@@ -678,6 +1755,8 @@ components:
       required: true
       schema:
         type: string
+        maxLength: 36
+        format: uuid
       description: Resource identifier
 
     VehicleId:
@@ -686,6 +1765,8 @@ components:
       required: true
       schema:
         type: string
+        maxLength: 36
+        format: uuid
       description: Vehicle model identifier
 
   # ── Reusable Responses ──────────────────────────────────────────────────────
@@ -698,6 +1779,34 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
 
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum number of requests per time window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Remaining:
+          description: Number of requests remaining in the current window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Reset:
+          description: UTC epoch seconds when the current window resets
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 9999999999
+        Access-Control-Allow-Origin:
+          description: Indicates which origins are allowed to access the resource
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^https?://[\w\-\.]+(:\d+)?$
     NotFound:
       description: Resource not found
       content:
@@ -707,6 +1816,143 @@ components:
 
   # ── Schemas ─────────────────────────────────────────────────────────────────
 
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum number of requests per time window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Remaining:
+          description: Number of requests remaining in the current window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Reset:
+          description: UTC epoch seconds when the current window resets
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 9999999999
+        Access-Control-Allow-Origin:
+          description: Indicates which origins are allowed to access the resource
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^https?://[\w\-\.]+(:\d+)?$
+    Unauthorized:
+      description: Authentication required or token invalid
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum number of requests per time window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Remaining:
+          description: Number of requests remaining in the current window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Reset:
+          description: UTC epoch seconds when the current window resets
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 9999999999
+        Access-Control-Allow-Origin:
+          description: Indicates which origins are allowed to access the resource
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^https?://[\w\-\.]+(:\d+)?$
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum number of requests per time window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Remaining:
+          description: Number of requests remaining in the current window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Reset:
+          description: UTC epoch seconds when the current window resets
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 9999999999
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 2147483647
+        Access-Control-Allow-Origin:
+          description: Indicates which origins are allowed to access the resource
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^https?://[\w\-\.]+(:\d+)?$
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        X-RateLimit-Limit:
+          description: Maximum number of requests per time window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Remaining:
+          description: Number of requests remaining in the current window
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 1000000
+        X-RateLimit-Reset:
+          description: UTC epoch seconds when the current window resets
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 9999999999
+        Access-Control-Allow-Origin:
+          description: Indicates which origins are allowed to access the resource
+          schema:
+            type: string
+            maxLength: 255
+            pattern: ^https?://[\w\-\.]+(:\d+)?$
   schemas:
     Error:
       type: object
@@ -721,6 +1967,8 @@ components:
 
     # ── Vehicle Schemas ─────────────────────────────────────────────────────
 
+          maxLength: 2000
+          pattern: ^[\s\S]+$
     CreateVehicleRequest:
       type: object
       required: [make, model, year, destinationCharge]
@@ -728,12 +1976,19 @@ components:
         make:
           type: string
           examples: ["Chevrolet"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         model:
           type: string
           examples: ["Malibu"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         year:
           type: integer
           examples: [2025]
+          format: int32
+          minimum: 0
+          maximum: 2147483647
         destinationCharge:
           type: number
           format: double
@@ -746,12 +2001,21 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         make:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         model:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         year:
           type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
         destinationCharge:
           type: number
           format: double
@@ -764,6 +2028,8 @@ components:
           type: string
           description: Display name of the trim level
           examples: ["LT"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         level:
           type: integer
           description: >
@@ -771,6 +2037,9 @@ components:
             Lower numbers are base trims; higher numbers are premium.
             Used for "at or above" trim comparisons.
           examples: [2]
+          format: int32
+          minimum: 0
+          maximum: 2147483647
         msrp:
           type: number
           format: double
@@ -783,12 +2052,21 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         vehicleId:
           type: string
+          maxLength: 36
+          format: uuid
         name:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         level:
           type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
         msrp:
           type: number
           format: double
@@ -802,6 +2080,8 @@ components:
         name:
           type: string
           examples: ["Technology"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
 
     OptionCategory:
       type: object
@@ -809,9 +2089,13 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         name:
           type: string
 
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
     CreateOptionRequest:
       type: object
       required: [name, categoryId, pricingType, price]
@@ -819,9 +2103,13 @@ components:
         name:
           type: string
           examples: ["Adaptive Cruise Control"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         categoryId:
           type: string
           description: ID of the option category this belongs to
+          maxLength: 36
+          format: uuid
         pricingType:
           $ref: "#/components/schemas/PricingType"
         price:
@@ -833,38 +2121,51 @@ components:
           examples: [1250]
         description:
           type: string
+          maxLength: 2000
+          pattern: ^[\s\S]+$
         dependencies:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
           description: >
             IDs of options that MUST be present on the quote when this option is
             selected. Transitive dependencies are enforced: if this option
             depends on B, and B depends on A, then A must also be present.
           default: []
+          maxItems: 100
         exclusions:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
           description: >
             IDs of options that CANNOT be present on the quote when this option
             is selected.
           default: []
+          maxItems: 100
         trimRestrictions:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
           description: >
             IDs of trims this option is available on. If empty or omitted, the
             option is available on all trims. When set, the quote's trim must
             be in this list for the option to be added.
           default: []
+          maxItems: 100
         packageId:
           type: ["string", "null"]
           description: >
             If this option is part of a package, the package identifier. When
             ALL options sharing the same packageId are present on a quote, the
             package discount is applied.
+          maxLength: 36
+          format: uuid
         packageName:
           type: ["string", "null"]
           description: >
@@ -872,11 +2173,13 @@ components:
             options sharing the same packageId should use the same
             packageName. Used in the pricing breakdown to label the package
             discount line item.
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         packageDiscount:
           anyOf:
-            - type: number
-              format: double
-            - type: "null"
+          - type: number
+            format: double
+          - type: "null"
           description: >
             Dollar discount applied when the full package is present. Each
             option in a package may carry its own packageDiscount value. When
@@ -892,10 +2195,16 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         name:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         categoryId:
           type: string
+          maxLength: 36
+          format: uuid
         pricingType:
           $ref: "#/components/schemas/PricingType"
         price:
@@ -903,27 +2212,42 @@ components:
           format: double
         description:
           type: string
+          maxLength: 2000
+          pattern: ^[\s\S]+$
         dependencies:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
+          maxItems: 100
         exclusions:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
+          maxItems: 100
         trimRestrictions:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
+          maxItems: 100
         packageId:
           type: ["string", "null"]
+          maxLength: 36
+          format: uuid
         packageName:
           type: ["string", "null"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         packageDiscount:
           anyOf:
-            - type: number
-              format: double
-            - type: "null"
+          - type: number
+            format: double
+          - type: "null"
 
     PricingType:
       type: string
@@ -940,11 +2264,17 @@ components:
       properties:
         vehicleId:
           type: string
+          maxLength: 36
+          format: uuid
         trimId:
           type: string
+          maxLength: 36
+          format: uuid
         customerName:
           type: string
           examples: ["Jane Smith"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         expiresIn:
           type: integer
           default: 30
@@ -952,6 +2282,9 @@ components:
             Number of days before a presented quote expires. If omitted,
             defaults to 30 days.
 
+          format: int32
+          minimum: 0
+          maximum: 2147483647
     AddQuoteOptionRequest:
       type: object
       required: [optionId]
@@ -960,6 +2293,8 @@ components:
           type: string
           description: ID of the option to add to the quote
 
+          maxLength: 36
+          format: uuid
     TransitionQuoteRequest:
       type: object
       required: [status]
@@ -973,37 +2308,54 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         vehicleId:
           type: string
+          maxLength: 36
+          format: uuid
         trimId:
           type: string
+          maxLength: 36
+          format: uuid
         customerName:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         status:
           $ref: "#/components/schemas/QuoteStatus"
         options:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
           description: IDs of options currently on the quote
+          maxItems: 100
         appliedIncentives:
           type: array
           items:
             type: string
+            maxLength: 255
+            pattern: ^[\s\S]*$
           description: IDs of incentive programs currently applied to the quote
+          maxItems: 100
         expiresAt:
           type: ["string", "null"]
           format: date-time
           description: >
             Expiration timestamp, calculated from expiresIn when the quote
             transitions to presented status. Null while in draft status.
+          maxLength: 40
         createdAt:
           type: string
           format: date-time
+          maxLength: 40
         updatedAt:
           type: string
           format: date-time
 
+          maxLength: 40
     QuoteStatus:
       type: string
       enum: [draft, presented, accepted, expired]
@@ -1019,6 +2371,8 @@ components:
       properties:
         quoteId:
           type: string
+          maxLength: 36
+          format: uuid
         baseMsrp:
           type: number
           format: double
@@ -1062,18 +2416,24 @@ components:
         name:
           type: string
           examples: ["Summer Sales Event"]
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         description:
           type: string
+          maxLength: 2000
+          pattern: ^[\s\S]+$
         startDate:
           type: string
           format: date
           description: Program effective start date (inclusive)
           examples: ["2025-06-01"]
+          maxLength: 10
         endDate:
           type: string
           format: date
           description: Program effective end date (inclusive)
           examples: ["2025-08-31"]
+          maxLength: 10
         exclusive:
           type: boolean
           description: >
@@ -1083,9 +2443,9 @@ components:
           default: false
         stackingCap:
           anyOf:
-            - type: number
-              format: double
-            - type: "null"
+          - type: number
+            format: double
+          - type: "null"
           description: >
             Maximum aggregate discount that non-exclusive programs can apply,
             expressed as a percentage of the full quote total
@@ -1108,34 +2468,44 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         name:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         description:
           type: string
+          maxLength: 2000
+          pattern: ^[\s\S]+$
         startDate:
           type: string
           format: date
+          maxLength: 10
         endDate:
           type: string
           format: date
+          maxLength: 10
         exclusive:
           type: boolean
         stackingCap:
           anyOf:
-            - type: number
-              format: double
-            - type: "null"
+          - type: number
+            format: double
+          - type: "null"
         rules:
           type: array
           default: []
           items:
             $ref: "#/components/schemas/ProgramRule"
+          maxItems: 100
         benefits:
           type: array
           default: []
           items:
             $ref: "#/components/schemas/ProgramBenefit"
 
+          maxItems: 100
     CreateProgramRuleRequest:
       type: object
       required: [type]
@@ -1149,58 +2519,58 @@ components:
             startDate/endDate).
           default: {}
           allOf:
-            - $ref: "#/components/schemas/ProgramRuleParameters"
+          - $ref: "#/components/schemas/ProgramRuleParameters"
       allOf:
-        - if:
-            required: [type]
-            properties:
-              type:
-                const: vehicle_model
-          then:
-            required: [parameters]
-            properties:
-              parameters:
-                required: [vehicleIds]
-        - if:
-            required: [type]
-            properties:
-              type:
-                const: min_trim_level
-          then:
-            required: [parameters]
-            properties:
-              parameters:
-                required: [minTrimLevel]
-        - if:
-            required: [type]
-            properties:
-              type:
-                const: min_quote_total
-          then:
-            required: [parameters]
-            properties:
-              parameters:
-                required: [minTotal]
-        - if:
-            required: [type]
-            properties:
-              type:
-                const: option_included
-          then:
-            required: [parameters]
-            properties:
-              parameters:
-                required: [optionId]
-        - if:
-            required: [type]
-            properties:
-              type:
-                const: category_included
-          then:
-            required: [parameters]
-            properties:
-              parameters:
-                required: [categoryId]
+      - if:
+          required: [type]
+          properties:
+            type:
+              const: vehicle_model
+        then:
+          required: [parameters]
+          properties:
+            parameters:
+              required: [vehicleIds]
+      - if:
+          required: [type]
+          properties:
+            type:
+              const: min_trim_level
+        then:
+          required: [parameters]
+          properties:
+            parameters:
+              required: [minTrimLevel]
+      - if:
+          required: [type]
+          properties:
+            type:
+              const: min_quote_total
+        then:
+          required: [parameters]
+          properties:
+            parameters:
+              required: [minTotal]
+      - if:
+          required: [type]
+          properties:
+            type:
+              const: option_included
+        then:
+          required: [parameters]
+          properties:
+            parameters:
+              required: [optionId]
+      - if:
+          required: [type]
+          properties:
+            type:
+              const: category_included
+        then:
+          required: [parameters]
+          properties:
+            parameters:
+              required: [categoryId]
 
     ProgramRule:
       type: object
@@ -1208,8 +2578,12 @@ components:
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         programId:
           type: string
+          maxLength: 36
+          format: uuid
         type:
           $ref: "#/components/schemas/ProgramRuleType"
         parameters:
@@ -1218,12 +2592,12 @@ components:
     ProgramRuleType:
       type: string
       enum:
-        - vehicle_model
-        - min_trim_level
-        - min_quote_total
-        - option_included
-        - category_included
-        - date_range
+      - vehicle_model
+      - min_trim_level
+      - min_quote_total
+      - option_included
+      - category_included
+      - date_range
       description: >
         Rule types:
 
@@ -1256,13 +2630,19 @@ components:
           type: array
           items:
             type: string
+            maxLength: 36
+            format: uuid
           description: "For `vehicle_model` rules: list of qualifying vehicle IDs"
+          maxItems: 100
         minTrimLevel:
           type: integer
           description: >
             For `min_trim_level` rules: the minimum trim level value.
             The quote's trim level must be >= this value.
           examples: [2]
+          format: int32
+          minimum: 0
+          maximum: 2147483647
         minTotal:
           type: number
           format: double
@@ -1275,10 +2655,14 @@ components:
         optionId:
           type: string
           description: "For `option_included` rules: the required option ID"
+          maxLength: 36
+          format: uuid
         categoryId:
           type: string
           description: "For `category_included` rules: the required category ID"
 
+          maxLength: 36
+          format: uuid
     CreateProgramBenefitRequest:
       type: object
       required: [type, amount]
@@ -1298,6 +2682,8 @@ components:
           description: >
             Required for `percentage_category` benefits. The category whose
             option prices are discounted.
+          maxLength: 36
+          format: uuid
       if:
         properties:
           type:
@@ -1309,14 +2695,20 @@ components:
           categoryId:
             type: string
 
+            maxLength: 36
+            format: uuid
     ProgramBenefit:
       type: object
       required: [id, programId, type, amount]
       properties:
         id:
           type: string
+          maxLength: 36
+          format: uuid
         programId:
           type: string
+          maxLength: 36
+          format: uuid
         type:
           $ref: "#/components/schemas/ProgramBenefitType"
         amount:
@@ -1324,13 +2716,15 @@ components:
           format: double
         categoryId:
           type: ["string", "null"]
+          maxLength: 36
+          format: uuid
 
     ProgramBenefitType:
       type: string
       enum:
-        - flat_discount
-        - percentage_msrp
-        - percentage_category
+      - flat_discount
+      - percentage_msrp
+      - percentage_category
       description: >
         Benefit types:
 
@@ -1343,10 +2737,13 @@ components:
 
     IncentiveEvaluation:
       type: object
-      required: [quoteId, subtotalBeforeIncentives, eligiblePrograms, projectedBenefits, projectedDiscount, projectedFinalPrice]
+      required: [quoteId, subtotalBeforeIncentives, eligiblePrograms, projectedBenefits, projectedDiscount, 
+          projectedFinalPrice]
       properties:
         quoteId:
           type: string
+          maxLength: 36
+          format: uuid
         subtotalBeforeIncentives:
           type: number
           format: double
@@ -1361,6 +2758,7 @@ components:
           items:
             $ref: "#/components/schemas/EligibleProgram"
           description: All programs the quote currently qualifies for
+          maxItems: 100
         projectedBenefits:
           type: array
           items:
@@ -1372,6 +2770,7 @@ components:
             that would be applied for that benefit. The sum of all
             `projectedBenefits[*].discountAmount` equals `projectedDiscount`.
             May differ from `eligiblePrograms` when exclusive rules or caps apply.
+          maxItems: 100
         projectedDiscount:
           type: number
           format: double
@@ -1393,8 +2792,12 @@ components:
       properties:
         programId:
           type: string
+          maxLength: 36
+          format: uuid
         programName:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         exclusive:
           type: boolean
         computedDiscount:
@@ -1412,18 +2815,20 @@ components:
     PricingBreakdown:
       type: object
       required:
-        - quoteId
-        - baseMsrp
-        - options
-        - packageDiscounts
-        - destinationCharge
-        - subtotalBeforeIncentives
-        - appliedIncentives
-        - totalIncentiveDiscount
-        - finalPrice
+      - quoteId
+      - baseMsrp
+      - options
+      - packageDiscounts
+      - destinationCharge
+      - subtotalBeforeIncentives
+      - appliedIncentives
+      - totalIncentiveDiscount
+      - finalPrice
       properties:
         quoteId:
           type: string
+          maxLength: 36
+          format: uuid
         baseMsrp:
           type: number
           format: double
@@ -1433,11 +2838,13 @@ components:
           items:
             $ref: "#/components/schemas/PricingLineItem"
           description: Each option with its computed price
+          maxItems: 100
         packageDiscounts:
           type: array
           items:
             $ref: "#/components/schemas/PackageDiscountLineItem"
           description: Package discounts applied (when all member options present)
+          maxItems: 100
         destinationCharge:
           type: number
           format: double
@@ -1455,6 +2862,7 @@ components:
             Each entry's `discountAmount` reflects the final amount after
             any stacking cap is applied. The sum of all
             `appliedIncentives[*].discountAmount` equals `totalIncentiveDiscount`.
+          maxItems: 100
         totalIncentiveDiscount:
           type: number
           format: double
@@ -1472,8 +2880,12 @@ components:
       properties:
         optionId:
           type: string
+          maxLength: 36
+          format: uuid
         name:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         pricingType:
           $ref: "#/components/schemas/PricingType"
         price:
@@ -1489,9 +2901,13 @@ components:
       properties:
         packageId:
           type: string
+          maxLength: 36
+          format: uuid
         packageName:
           type: string
           description: Human-readable name of the package
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         discount:
           type: number
           format: double
@@ -1509,8 +2925,12 @@ components:
       properties:
         programId:
           type: string
+          maxLength: 36
+          format: uuid
         programName:
           type: string
+          maxLength: 255
+          pattern: ^[\w\s\-\.\'\"&,()]+$
         benefitType:
           $ref: "#/components/schemas/ProgramBenefitType"
         discountAmount:
@@ -1531,3 +2951,14 @@ components:
           description: >
             For `percentage_category` benefits: the ID of the option category
             that was discounted. Null or absent for other benefit types.
+          maxLength: 36
+          format: uuid
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication. This API complies with RFC8725 for JWT best practices including 
+        short-lived tokens and audience validation.
+security:
+- BearerAuth: []
