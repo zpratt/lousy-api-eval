@@ -1,0 +1,30 @@
+---
+name: PR Verify
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.7
+      - name: Setup node
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.4
+        with:
+          node-version-file: .nvmrc
+      - name: Install Node.js dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Run lousy-agents lint
+        uses: zpratt/lousy-agents@aed2f2f3b9cb11a2b7935851377bf1356812e3e8  # v3.1.0
+        with:
+          github_token: ${{ github.token }}
