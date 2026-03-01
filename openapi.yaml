@@ -328,12 +328,19 @@ paths:
                   summary: Trim restriction
                   value:
                     error: "Option \"Performance Exhaust\" is only available on Sport trim and above"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Quote status does not allow modification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
                 notDraft:
                   summary: Quote not in draft status
                   value:
                     error: "Options can only be added to quotes in draft status"
-        "404":
-          $ref: "#/components/responses/NotFound"
 
   /quotes/{id}/options/{optionId}:
     delete:
@@ -359,18 +366,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Quote"
         "400":
-          description: Bad request
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Quote status does not allow modification
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               examples:
                 notDraft:
-                  summary: Quote is not in draft status
+                  summary: Options can only be removed from quotes in draft status
                   value:
-                    error: Quote is not in draft status and cannot be modified
-        "404":
-          $ref: "#/components/responses/NotFound"
+                    error: "Options can only be removed from quotes in draft status"
 
   /quotes/{id}/calculate:
     post:
@@ -429,6 +438,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Quote"
         "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidRequest:
+                  summary: Missing or invalid status
+                  value:
+                    error: "Request body must include a valid \"status\" value"
+        "409":
           description: Invalid status transition
           content:
             application/json:
@@ -586,9 +606,18 @@ paths:
           one with the largest dollar discount is applied. No other programs
           (exclusive or non-exclusive) are applied.
 
-        - **Non-exclusive programs**: Stack additively, but total discounts
-          from non-exclusive programs are capped at a configurable percentage
-          of the quote's total value.
+        - **Non-exclusive programs**: Stack additively. When one or more
+          qualifying non-exclusive programs specify a non-null `stackingCap`,
+          the total discount from all non-exclusive programs is capped at the
+          lowest (most restrictive) non-null cap as a percentage of
+          `PricingBreakdown.subtotalBeforeIncentives` (the quote total before
+          any incentives are applied). If no qualifying non-exclusive program
+          has a non-null `stackingCap`, no aggregate cap is applied.
+
+        **Idempotency**: If this endpoint is called more than once on the same
+        quote, previously applied incentives are replaced by the newly computed
+        applied set (post-stacking). Each call performs a fresh evaluation and overwrites
+        `appliedIncentives` on the quote.
 
         **Lifecycle constraint**: Incentives may only be applied to quotes in
         `draft` status. Attempting to apply incentives to a quote in any other
@@ -602,8 +631,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Quote"
-        "400":
-          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -1004,7 +1031,10 @@ components:
           description: >
             Total package discount amount (positive value, subtracted from
             total). Zero when no packages are fully present on the quote.
-            Always present in the response (0 when no packages apply).
+            Always present in the response (0 when no packages apply). This
+            is an aggregated scalar total across all applicable packages. For
+            an itemized per-package breakdown, see the `packageDiscounts` array
+            in `PricingBreakdown` returned by `GET /quotes/{id}/pricing-breakdown`.
         destinationCharge:
           type: number
           format: double
@@ -1054,11 +1084,18 @@ components:
               format: double
             - type: "null"
           description: >
-            Maximum percentage of the total quote value that non-exclusive
-            programs can discount in aggregate (e.g., 15.0 means 15%). Only
-            relevant for non-exclusive programs. When multiple qualifying
-            non-exclusive programs define different caps, the lowest (most
-            restrictive) cap governs the aggregate discount limit.
+            Maximum aggregate discount that non-exclusive programs can apply,
+            expressed as a percentage of `PricingBreakdown.subtotalBeforeIncentives`
+            (the quote total before any incentives, e.g., 15.0 means 15%). Only
+            relevant for non-exclusive programs. When omitted, this field is
+            treated as `null`. If this value is null for a qualifying
+            non-exclusive program, that program does not impose any stacking
+            cap. When multiple qualifying non-exclusive programs define
+            different non-null caps, the lowest (most restrictive) cap governs
+            the aggregate discount limit. If no qualifying non-exclusive
+            program specifies a non-null cap, no aggregate stacking cap is
+            applied and non-exclusive discounts may stack without a percentage
+            limit (subject to other program rules).
           examples: [15.0]
 
     IncentiveProgram:
@@ -1110,6 +1147,7 @@ components:
             startDate/endDate).
       allOf:
         - if:
+            required: [type]
             properties:
               type:
                 const: vehicle_model
@@ -1119,6 +1157,7 @@ components:
               parameters:
                 required: [vehicleIds]
         - if:
+            required: [type]
             properties:
               type:
                 const: min_trim_level
@@ -1128,6 +1167,7 @@ components:
               parameters:
                 required: [minTrimLevel]
         - if:
+            required: [type]
             properties:
               type:
                 const: min_quote_total
@@ -1137,6 +1177,7 @@ components:
               parameters:
                 required: [minTotal]
         - if:
+            required: [type]
             properties:
               type:
                 const: option_included
@@ -1146,6 +1187,7 @@ components:
               parameters:
                 required: [optionId]
         - if:
+            required: [type]
             properties:
               type:
                 const: category_included
@@ -1185,15 +1227,18 @@ components:
         - `min_quote_total` — Quote total must exceed the threshold.
         - `option_included` — A specific option must be on the quote.
         - `category_included` — At least one option from the category must be on the quote.
-        - `date_range` — Quote must be created within the program's date range.
+        - `date_range` — Quote's `createdAt` timestamp must fall within the
+          program's active date range. Eligibility is always evaluated against
+          the quote's persisted `createdAt` value, not the current wall-clock
+          time at the point of evaluation or incentive application.
 
     ProgramRuleParameters:
       type: object
       description: >
         Parameters vary by rule type. Include only the fields relevant to the
         rule type. The `date_range` rule type requires no additional parameters
-        here — it checks whether the quote creation date falls within the
-        program's own `startDate`/`endDate` fields.
+        here — it evaluates eligibility using the quote's persisted `createdAt`
+        timestamp against the program's own `startDate`/`endDate` fields.
       properties:
         vehicleIds:
           type: array
@@ -1324,8 +1369,11 @@ components:
           type: number
           format: double
           description: >
-            The dollar discount this program would produce for the current
-            quote state (positive value, subtracted from total).
+            Total dollar discount this program would produce for the current
+            quote state (positive value, subtracted from the pre-incentive
+            subtotal; see `PricingBreakdown.subtotalBeforeIncentives`), aggregating
+            the impact of all of its benefits. See `IncentiveEvaluation.projectedBenefits`
+            for an itemized per-benefit breakdown.
 
     # ── Pricing Breakdown Schemas ───────────────────────────────────────────
 
