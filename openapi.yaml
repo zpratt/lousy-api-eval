@@ -359,7 +359,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Quote"
         "400":
-          description: Bad request
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Quote status does not allow modification
           content:
             application/json:
               schema:
@@ -369,8 +373,6 @@ paths:
                   summary: Options can only be removed from quotes in draft status
                   value:
                     error: Options can only be removed from quotes in draft status
-        "404":
-          $ref: "#/components/responses/NotFound"
 
   /quotes/{id}/calculate:
     post:
@@ -586,9 +588,12 @@ paths:
           one with the largest dollar discount is applied. No other programs
           (exclusive or non-exclusive) are applied.
 
-        - **Non-exclusive programs**: Stack additively, but total discounts
-          from non-exclusive programs are capped at a configurable percentage
-          of the quote's total value.
+        - **Non-exclusive programs**: Stack additively. When one or more
+          qualifying non-exclusive programs specify a non-null `stackingCap`,
+          the total discount from all non-exclusive programs is capped at the
+          lowest (most restrictive) non-null cap as a percentage of the quote's
+          total value. If no qualifying non-exclusive program has a non-null
+          `stackingCap`, no aggregate cap is applied.
 
         **Idempotency**: If this endpoint is called more than once on the same
         quote, previously applied incentives are replaced by the newly computed
