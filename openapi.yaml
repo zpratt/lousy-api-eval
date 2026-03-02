@@ -12,7 +12,11 @@ info:
     email: api-support@example.com
 servers:
   - url: https://localhost:3000
-    description: Local development server
+    description: >-
+      Local development server. Implementations may run over plain HTTP
+      locally (without TLS termination); the HTTPS URL here satisfies
+      OWASP API8:2023-no-server-http linting. CORS is configured to
+      accept both HTTP and HTTPS origins for the same reason.
     x-internal: true
 tags:
   - name: Vehicles
@@ -47,32 +51,13 @@ paths:
                 $ref: "#/components/schemas/Vehicle"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -98,32 +83,15 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -147,32 +115,13 @@ paths:
                 $ref: "#/components/schemas/Vehicle"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -205,32 +154,13 @@ paths:
                 $ref: "#/components/schemas/Trim"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -259,32 +189,13 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -317,32 +228,13 @@ paths:
                 $ref: "#/components/schemas/OptionCategory"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -368,32 +260,15 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -426,32 +301,13 @@ paths:
                 $ref: "#/components/schemas/Option"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -478,32 +334,15 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -528,32 +367,13 @@ paths:
                 $ref: "#/components/schemas/Option"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -589,32 +409,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -641,32 +442,15 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -691,32 +475,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -763,32 +528,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           description: >
             Compatibility rule violation. The response body includes a specific
@@ -812,32 +558,13 @@ paths:
                     error: "Option \"Performance Exhaust\" is only available on specific trim levels"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -854,32 +581,15 @@ paths:
 
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -911,32 +621,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -955,32 +646,15 @@ paths:
 
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1011,32 +685,13 @@ paths:
                 $ref: "#/components/schemas/QuotePricing"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1077,32 +732,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           description: Invalid request body
           content:
@@ -1116,32 +752,13 @@ paths:
                     error: "Request body must include a valid \"status\" value"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "409":
           description: Invalid status transition
           content:
@@ -1155,32 +772,13 @@ paths:
                     error: "Cannot transition from \"accepted\" to \"draft\""
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1210,32 +808,13 @@ paths:
                 $ref: "#/components/schemas/IncentiveProgram"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1261,32 +840,15 @@ paths:
                 maxItems: 100
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1310,32 +872,13 @@ paths:
                 $ref: "#/components/schemas/IncentiveProgram"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1371,32 +914,13 @@ paths:
                 $ref: "#/components/schemas/ProgramRule"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -1428,32 +952,13 @@ paths:
                 $ref: "#/components/schemas/ProgramBenefit"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -1487,32 +992,13 @@ paths:
                 $ref: "#/components/schemas/IncentiveEvaluation"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1563,32 +1049,13 @@ paths:
                 $ref: "#/components/schemas/Quote"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
@@ -1605,32 +1072,15 @@ paths:
 
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1658,32 +1108,13 @@ paths:
                 $ref: "#/components/schemas/PricingBreakdown"
           headers:
             X-RateLimit-Limit:
-              description: Maximum number of requests per time window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitLimit'
             X-RateLimit-Remaining:
-              description: Number of requests remaining in the current window
-              schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
+              $ref: '#/components/headers/XRateLimitRemaining'
             X-RateLimit-Reset:
-              description: UTC epoch seconds when the current window resets
-              schema:
-                type: integer
-                format: int64
-                minimum: 0
-                maximum: 9999999999
+              $ref: '#/components/headers/XRateLimitReset'
             Access-Control-Allow-Origin:
-              description: Indicates which origins are allowed to access the resource
-              schema:
-                type: string
-                maxLength: 255
-                pattern: ^https?://[\w\-\.]+(:\d+)?$
+              $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1694,6 +1125,48 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 components:
+  # ── Reusable Headers ──────────────────────────────────────────────────────
+
+  headers:
+    XRateLimitLimit:
+      description: Maximum number of requests per time window
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 1000000
+    XRateLimitRemaining:
+      description: Number of requests remaining in the current window
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 1000000
+    XRateLimitReset:
+      description: UTC epoch seconds when the current window resets
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+        maximum: 9999999999
+    RetryAfter:
+      description: Seconds to wait before retrying
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 2147483647
+    AccessControlAllowOrigin:
+      description: >-
+        Indicates which origins are allowed to access the resource. The pattern
+        permits both HTTP and HTTPS origins because implementations are expected
+        to run locally without TLS termination. Production deployments should
+        enforce HTTPS-only origins at the infrastructure level.
+      schema:
+        type: string
+        maxLength: 255
+        pattern: ^https?://[\w\-\.]+(:\d+)?$
+
   # ── Parameters ──────────────────────────────────────────────────────────────
 
   parameters:
@@ -1729,32 +1202,13 @@ components:
 
       headers:
         X-RateLimit-Limit:
-          description: Maximum number of requests per time window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitLimit'
         X-RateLimit-Remaining:
-          description: Number of requests remaining in the current window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitRemaining'
         X-RateLimit-Reset:
-          description: UTC epoch seconds when the current window resets
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-            maximum: 9999999999
+          $ref: '#/components/headers/XRateLimitReset'
         Access-Control-Allow-Origin:
-          description: Indicates which origins are allowed to access the resource
-          schema:
-            type: string
-            maxLength: 255
-            pattern: ^https?://[\w\-\.]+(:\d+)?$
+          $ref: '#/components/headers/AccessControlAllowOrigin'
     NotFound:
       description: Resource not found
       content:
@@ -1763,70 +1217,42 @@ components:
             $ref: "#/components/schemas/Error"
       headers:
         X-RateLimit-Limit:
-          description: Maximum number of requests per time window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitLimit'
         X-RateLimit-Remaining:
-          description: Number of requests remaining in the current window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitRemaining'
         X-RateLimit-Reset:
-          description: UTC epoch seconds when the current window resets
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-            maximum: 9999999999
+          $ref: '#/components/headers/XRateLimitReset'
         Access-Control-Allow-Origin:
-          description: Indicates which origins are allowed to access the resource
-          schema:
-            type: string
-            maxLength: 255
-            pattern: ^https?://[\w\-\.]+(:\d+)?$
+          $ref: '#/components/headers/AccessControlAllowOrigin'
 
+    Unauthorized:
+      description: Authentication required or token invalid
+      headers:
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/XRateLimitLimit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/XRateLimitRemaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/XRateLimitReset'
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/AccessControlAllowOrigin'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     TooManyRequests:
       description: Rate limit exceeded
       headers:
         X-RateLimit-Limit:
-          description: Maximum number of requests per time window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitLimit'
         X-RateLimit-Remaining:
-          description: Number of requests remaining in the current window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitRemaining'
         X-RateLimit-Reset:
-          description: UTC epoch seconds when the current window resets
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-            maximum: 9999999999
+          $ref: '#/components/headers/XRateLimitReset'
         Retry-After:
-          description: Seconds to wait before retrying
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 2147483647
+          $ref: '#/components/headers/RetryAfter'
         Access-Control-Allow-Origin:
-          description: Indicates which origins are allowed to access the resource
-          schema:
-            type: string
-            maxLength: 255
-            pattern: ^https?://[\w\-\.]+(:\d+)?$
+          $ref: '#/components/headers/AccessControlAllowOrigin'
       content:
         application/json:
           schema:
@@ -1839,32 +1265,13 @@ components:
             $ref: '#/components/schemas/Error'
       headers:
         X-RateLimit-Limit:
-          description: Maximum number of requests per time window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitLimit'
         X-RateLimit-Remaining:
-          description: Number of requests remaining in the current window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
+          $ref: '#/components/headers/XRateLimitRemaining'
         X-RateLimit-Reset:
-          description: UTC epoch seconds when the current window resets
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-            maximum: 9999999999
+          $ref: '#/components/headers/XRateLimitReset'
         Access-Control-Allow-Origin:
-          description: Indicates which origins are allowed to access the resource
-          schema:
-            type: string
-            maxLength: 255
-            pattern: ^https?://[\w\-\.]+(:\d+)?$
+          $ref: '#/components/headers/AccessControlAllowOrigin'
 
   # ── Schemas ─────────────────────────────────────────────────────────────────
 

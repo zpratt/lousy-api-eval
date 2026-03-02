@@ -84,7 +84,15 @@ rules:
   owasp:api7:2023-concerning-url-parameter: error
 
   # API8:2023 - Security Misconfiguration
-  owasp:api8:2023-define-cors-origin: error
+  owasp:api8:2023-define-cors-origin:
+    severity: error
+    message: "Header `{{property}}` should be defined on all responses."
+    given:
+      - "$.paths[*][*].responses[*].headers"
+      - "$.components.responses[*].headers"
+    then:
+      field: "Access-Control-Allow-Origin"
+      function: truthy
   owasp:api8:2023-no-scheme-http: error
   owasp:api8:2023-no-server-http: error
   owasp:api8:2023-define-error-validation: error
