@@ -134,7 +134,7 @@ const specs = args.length > 0 ? args.map((a) => resolve(REPO_ROOT, a)) : findSpe
 if (specs.length === 0) {
   // biome-ignore lint/suspicious/noConsole: CLI script requires stdout/stderr
   console.error(
-    "No OpenAPI spec files found. Pass a path or name files *.openapi.yaml",
+    "No OpenAPI spec files found. Pass a path or name files *.openapi.yaml / openapi.yaml / openapi.json",
   );
   process.exit(0);
 }

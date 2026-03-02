@@ -2326,16 +2326,16 @@ components:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           description: IDs of options currently on the quote
           maxItems: 100
         appliedIncentives:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           description: IDs of incentive programs currently applied to the quote
           maxItems: 100
         expiresAt:

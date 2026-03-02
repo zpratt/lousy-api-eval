@@ -6,7 +6,7 @@ on:
       - "**/*.openapi.yaml"
       - "**/*.openapi.json"
       - "openapi/**"
-      - "specs/**"
+      - ".github/specs/**"
       - "openapi.yaml"
       - "openapi.json"
       - ".spectral.yaml"
