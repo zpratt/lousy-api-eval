@@ -537,7 +537,7 @@ describe("pricing calculation", () => {
 			}>(
 				await calculateQuote(baseUrl, quote.id),
 				200,
-				"Calculate quote with option",
+				"Calculate quote with option (intermediate verification)",
 			);
 			expect(pricingWithOption.optionsTotal).toBe(optionPrice);
 

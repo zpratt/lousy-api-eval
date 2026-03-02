@@ -68,7 +68,7 @@ describe("vehicle and option CRUD", () => {
 				year: 2025,
 				destinationCharge: 995,
 			};
-			const created = await expectStatus(
+			const created = await expectStatus<{ id: string }>(
 				await createVehicle(baseUrl, payload),
 				201,
 				"Create vehicle for listing test",
@@ -82,7 +82,7 @@ describe("vehicle and option CRUD", () => {
 			const vehicles = await response.json();
 			expect(Array.isArray(vehicles)).toBe(true);
 			const found = vehicles.find(
-				(v: { id: string }) => v.id === (created as { id: string }).id,
+				(v: { id: string }) => v.id === created.id,
 			);
 			expect(found).toBeDefined();
 			expect(found.make).toBe(payload.make);
