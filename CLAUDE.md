@@ -187,7 +187,7 @@ See @.github/instructions/pipeline.instructions.md for workflow structure requir
 
 ## OpenAPI Linting with Spectral
 
-This project enforces OpenAPI spec quality using Spectral. Spectral enforces both structural quality rules and **OWASP API Security Top 10 (2023)** rules — all at error severity.
+This project enforces OpenAPI spec quality using Spectral. Spectral enforces structural quality rules (a mix of error and warning severity) and **OWASP API Security Top 10 (2023)** rules at error severity. See `.spectral.yaml` for the full ruleset and severity configuration.
 
 **⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npm run lint:spectral -- <spec-file>` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
 

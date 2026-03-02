@@ -39,7 +39,12 @@ function isSpecFile(filename) {
 function processEntry(dir, entry, depth) {
   if (entry.startsWith(".") || entry === "node_modules") return [];
   const full = join(dir, entry);
-  const stat = statSync(full);
+  let stat;
+  try {
+    stat = statSync(full);
+  } catch {
+    return [];
+  }
   if (stat.isFile() && isSpecFile(entry)) return [full];
   if (stat.isDirectory()) return findSpecs(full, depth - 1);
   return [];

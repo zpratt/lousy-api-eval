@@ -11,10 +11,9 @@ info:
     name: API Support
     email: api-support@example.com
 servers:
-- url: https://localhost:3000
-  description: Local development server
-
-  x-internal: true
+  - url: https://localhost:3000
+    description: Local development server
+    x-internal: true
 tags:
   - name: Vehicles
     description: Vehicle models and trim levels
@@ -832,8 +831,7 @@ paths:
                 exclusionViolation:
                   summary: Exclusion conflict
                   value:
-                    error: "Option \"Standard Audio\" cannot be added because it excludes \"Premium Audio System\" which is
-                      already on the quote"
+                    error: "Option \"Standard Audio\" cannot be added because it excludes \"Premium Audio System\" which is already on the quote"
                 trimRestriction:
                   summary: Trim restriction
                   value:
@@ -1842,8 +1840,6 @@ components:
             maxLength: 255
             pattern: ^https?://[\w\-\.]+(:\d+)?$
 
-  # ── Schemas ─────────────────────────────────────────────────────────────────
-
     Unauthorized:
       description: Authentication required or token invalid
       headers:
@@ -1953,6 +1949,9 @@ components:
             type: string
             maxLength: 255
             pattern: ^https?://[\w\-\.]+(:\d+)?$
+
+  # ── Schemas ─────────────────────────────────────────────────────────────────
+
   schemas:
     Error:
       type: object
