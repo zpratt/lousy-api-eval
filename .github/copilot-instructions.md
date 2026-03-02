@@ -14,14 +14,18 @@ Evaluation tooling for measuring the impact of GitHub Copilot instructions on RE
 # Core commands
 npm test                    # Run unit tests (vitest)
 npm run test:e2e            # Run E2E acceptance tests against an API implementation
-npx @biomejs/biome lint .   # Lint this repo's code
+npm run lint                # Lint this repo's code (Biome)
+npm run lint:spectral -- path/to/openapi.yaml  # MANDATORY: Lint OpenAPI specs (OWASP + structural rules)
+npm run lint:api            # MANDATORY: Structured Spectral report (auto-discovers specs)
 
 # File-scoped (faster feedback)
 npx biome check path/to/file.ts
 npm test path/to/file.test.ts
 
 # Validation suite (run before commits)
-npm test && npx @biomejs/biome lint .
+npm test && npm run lint
+# If OpenAPI specs exist or were modified:
+npm run lint:spectral -- path/to/openapi.yaml
 ```
 
 ## Workflow: TDD Required
@@ -34,7 +38,8 @@ Follow this exact sequence for ALL code changes. Work in small increments — ma
 4. **Implement minimal code**: Write just enough to pass
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
-7. **Validate**: `npm test && npx @biomejs/biome lint .`
+7. **Validate**: `npm test && npm run lint`
+8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
 
 Task is NOT complete until all validation passes.
 
@@ -143,11 +148,95 @@ See `.github/instructions/test.instructions.md` for detailed conventions includi
 - Use explicit version numbers: `npm install <package>@<exact-version>`
 - Run `npm audit` after any dependency change
 
+## OpenAPI Specification Linting with Spectral
+
+This project uses [Spectral](https://github.com/stoplightio/spectral) to lint and validate OpenAPI specifications. Spectral enforces structural quality rules (a mix of error and warning severity) and **OWASP API Security Top 10 (2023)** rules at error severity. See `.spectral.yaml` for the full ruleset and severity configuration.
+
+**⚠️ MANDATORY: Running Spectral is not optional.** Any time you create or modify an OpenAPI spec file, you **must** run `npm run lint:spectral -- <spec-file>` and resolve all errors before considering the task complete. This applies to every coding workflow — not just commits.
+
+### Running Spectral
+
+```bash
+# Lint a specific spec (fails on errors)
+npm run lint:spectral -- path/to/openapi.yaml
+
+# Lint with JSON output for structured analysis
+npm run lint:spectral -- path/to/openapi.yaml --format=json
+
+# Auto-discover and lint all specs with structured report
+npm run lint:api
+```
+
+### When modifying or creating OpenAPI specs
+
+1. **Always run Spectral before committing.** Execute `npm run lint:spectral -- <spec-file>` and resolve all errors. Warnings should be addressed when practical.
+2. **Read the full Spectral output.** Each violation includes a rule name (e.g. `operation-operationId`), severity, file path, line number, and a human-readable message. Use these to understand _why_ something is wrong, not just _what_ is wrong.
+3. **Fix violations at the source.** Do not suppress rules unless there is a documented, legitimate reason. If a rule must be suppressed, add a comment in the spec explaining why.
+
+### Interpreting Spectral results
+
+Spectral JSON output is an array of objects with this structure:
+
+```json
+{
+  "code": "rule-name",
+  "path": ["paths", "/example", "get", "responses"],
+  "message": "Human-readable description of the problem",
+  "severity": 0,
+  "range": { "start": { "line": 10, "character": 6 }, "end": { "line": 10, "character": 20 } },
+  "source": "path/to/openapi.yaml"
+}
+```
+
+Severity levels: `0` = error, `1` = warning, `2` = info, `3` = hint.
+
+**When reasoning about how to fix a violation:**
+
+- `operation-operationId`: Every operation needs a unique `operationId`. Use camelCase, derived from the HTTP method and path (e.g. `GET /users/{id}` → `getUserById`).
+- `operation-description`: Add a longer description explaining what the operation does, when to use it, and any side effects.
+- `operation-tags`: Tag every operation for logical grouping in generated docs.
+- `operation-success-response`: Every operation must define at least one success response (200, 201, 204, etc.).
+- `oas3-operation-security-defined`: If the API uses security schemes, every operation should reference one or declare an empty security array for public endpoints.
+- `oas3-server-trailing-slash`: Server URLs must not end with `/`.
+- `path-params`: Every path parameter in the URL template must have a corresponding parameter definition.
+- `oas3-valid-media-example`: Examples must validate against their schema.
+- `typed-enum`: Enum values should match the declared type of the property.
+
+### Iterative refinement workflow
+
+When asked to improve or fix an OpenAPI spec:
+
+1. Run `npm run lint:spectral -- <file> --format=json` and capture the output.
+2. Group violations by rule name to understand systemic issues vs one-off mistakes.
+3. Fix errors first (severity 0), then warnings (severity 1).
+4. After making fixes, re-run Spectral to verify the fix didn't introduce new violations.
+5. Repeat until clean or until only intentionally-suppressed warnings remain.
+
+### Spec quality guidelines beyond linting
+
+Spectral catches structural issues, but also apply these principles:
+
+- **Use `$ref` for reusable schemas.** Don't duplicate schema definitions. Extract shared models into `components/schemas`.
+- **Provide examples.** Add `example` or `examples` to schemas, parameters, and response bodies. These power documentation and mocking.
+- **Use descriptive error responses.** Define `4xx` and `5xx` responses with schema definitions, not just status codes.
+- **Semantic versioning.** The `info.version` field should follow semver (e.g. `1.2.0`).
+- **Consistent naming.** Use camelCase for JSON property names, kebab-case for URL paths, and UPPER_SNAKE_CASE for enum values (or match whatever convention is already established in the spec).
+
+### CI integration
+
+The `.github/workflows/api-lint.yml` workflow runs Spectral on every PR that touches OpenAPI spec files. It:
+- Produces GitHub Actions annotations on the PR (inline error/warning markers)
+- Uploads JSON lint results as a build artifact
+- Fails the check if any errors are found
+
+The Spectral configuration lives in `.spectral.yaml` at the repo root.
+
 ## Boundaries
 
 **✅ Always do:**
 - Write tests before implementation (TDD)
 - Run lint and tests after every change
+- Run `npm run lint:spectral` on any OpenAPI spec file after every change — this is mandatory
 - Run full validation before commits
 - Map E2E tests to scorecard dimensions
 - Use existing patterns from codebase
@@ -160,6 +249,7 @@ See `.github/instructions/test.instructions.md` for detailed conventions includi
 
 **🚫 Never do:**
 - Skip the TDD workflow
+- Skip Spectral linting on OpenAPI spec files
 - Store secrets in code (use environment variables)
 - Use Jest (use Vitest)
 - Use mocking in E2E tests (all services must be real containers)
