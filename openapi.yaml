@@ -1498,9 +1498,9 @@ components:
           pattern: ^[\w\s\-\.\'\"&,()]+$
         packageDiscount:
           anyOf:
-          - type: number
-            format: double
-          - type: "null"
+            - type: number
+              format: double
+            - type: "null"
           description: >
             Dollar discount applied when the full package is present. Each
             option in a package may carry its own packageDiscount value. When
@@ -1566,9 +1566,9 @@ components:
           pattern: ^[\w\s\-\.\'\"&,()]+$
         packageDiscount:
           anyOf:
-          - type: number
-            format: double
-          - type: "null"
+            - type: number
+              format: double
+            - type: "null"
 
     PricingType:
       type: string
@@ -1764,9 +1764,9 @@ components:
           default: false
         stackingCap:
           anyOf:
-          - type: number
-            format: double
-          - type: "null"
+            - type: number
+              format: double
+            - type: "null"
           description: >
             Maximum aggregate discount that non-exclusive programs can apply,
             expressed as a percentage of the full quote total
@@ -1811,9 +1811,9 @@ components:
           type: boolean
         stackingCap:
           anyOf:
-          - type: number
-            format: double
-          - type: "null"
+            - type: number
+              format: double
+            - type: "null"
         rules:
           type: array
           default: []
@@ -1840,58 +1840,58 @@ components:
             startDate/endDate).
           default: {}
           allOf:
-          - $ref: "#/components/schemas/ProgramRuleParameters"
+            - $ref: "#/components/schemas/ProgramRuleParameters"
       allOf:
-      - if:
-          required: [type]
-          properties:
-            type:
-              const: vehicle_model
-        then:
-          required: [parameters]
-          properties:
-            parameters:
-              required: [vehicleIds]
-      - if:
-          required: [type]
-          properties:
-            type:
-              const: min_trim_level
-        then:
-          required: [parameters]
-          properties:
-            parameters:
-              required: [minTrimLevel]
-      - if:
-          required: [type]
-          properties:
-            type:
-              const: min_quote_total
-        then:
-          required: [parameters]
-          properties:
-            parameters:
-              required: [minTotal]
-      - if:
-          required: [type]
-          properties:
-            type:
-              const: option_included
-        then:
-          required: [parameters]
-          properties:
-            parameters:
-              required: [optionId]
-      - if:
-          required: [type]
-          properties:
-            type:
-              const: category_included
-        then:
-          required: [parameters]
-          properties:
-            parameters:
-              required: [categoryId]
+        - if:
+            required: [type]
+            properties:
+              type:
+                const: vehicle_model
+          then:
+            required: [parameters]
+            properties:
+              parameters:
+                required: [vehicleIds]
+        - if:
+            required: [type]
+            properties:
+              type:
+                const: min_trim_level
+          then:
+            required: [parameters]
+            properties:
+              parameters:
+                required: [minTrimLevel]
+        - if:
+            required: [type]
+            properties:
+              type:
+                const: min_quote_total
+          then:
+            required: [parameters]
+            properties:
+              parameters:
+                required: [minTotal]
+        - if:
+            required: [type]
+            properties:
+              type:
+                const: option_included
+          then:
+            required: [parameters]
+            properties:
+              parameters:
+                required: [optionId]
+        - if:
+            required: [type]
+            properties:
+              type:
+                const: category_included
+          then:
+            required: [parameters]
+            properties:
+              parameters:
+                required: [categoryId]
 
     ProgramRule:
       type: object
