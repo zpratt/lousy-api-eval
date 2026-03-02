@@ -9,6 +9,16 @@ import {
 const APP_PORT = 3000;
 const DB_PORT = 5432;
 
+let cachedAppImage: GenericContainer | undefined;
+
+async function getAppImage(): Promise<GenericContainer> {
+	if (!cachedAppImage) {
+		cachedAppImage =
+			await GenericContainer.fromDockerfile(".").build();
+	}
+	return cachedAppImage;
+}
+
 export interface TestInfrastructure {
 	network: StartedNetwork;
 	dbContainer: StartedTestContainer;
@@ -28,14 +38,16 @@ export async function startPostgres(
 			POSTGRES_PASSWORD: "test",
 			POSTGRES_DB: "testdb",
 		})
-		.withWaitStrategy(Wait.forListeningPorts())
+		.withWaitStrategy(
+			Wait.forLogMessage("ready to accept connections"),
+		)
 		.start();
 }
 
 export async function startApp(
 	network: StartedNetwork,
 ): Promise<StartedTestContainer> {
-	const image = await GenericContainer.fromDockerfile(".").build();
+	const image = await getAppImage();
 	return image
 		.withNetwork(network)
 		.withExposedPorts(APP_PORT)
@@ -44,9 +56,7 @@ export async function startApp(
 			NODE_ENV: "test",
 			PORT: String(APP_PORT),
 		})
-		.withWaitStrategy(
-			Wait.forHttp("/health", APP_PORT).forStatusCode(200),
-		)
+		.withWaitStrategy(Wait.forListeningPorts())
 		.start();
 }
 
