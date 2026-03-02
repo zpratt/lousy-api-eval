@@ -28,9 +28,7 @@ export async function startPostgres(
 			POSTGRES_PASSWORD: "test",
 			POSTGRES_DB: "testdb",
 		})
-		.withWaitStrategy(
-			Wait.forLogMessage(/ready to accept connections/, 2),
-		)
+		.withWaitStrategy(Wait.forListeningPorts())
 		.start();
 }
 

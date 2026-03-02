@@ -337,7 +337,7 @@ describe("quote status lifecycle", () => {
 
 	describe("full lifecycle scenario", () => {
 		it("should complete the full lifecycle: create quote, add options, present, and accept", async () => {
-			// Arrange — create an option
+			// Arrange — create option, draft quote, add option, transition to presented
 			const optRes = await createOption(baseUrl, {
 				name: chance.word(),
 				categoryId,
@@ -346,31 +346,22 @@ describe("quote status lifecycle", () => {
 			});
 			const opt = await optRes.json();
 
-			// Create a draft quote
 			const quote = await createDraftQuote();
-			expect(quote.id).toBeDefined();
-
-			// Add option while in draft
-			const addRes = await addQuoteOption(baseUrl, quote.id, {
+			await addQuoteOption(baseUrl, quote.id, {
 				optionId: opt.id,
 			});
-			expect(addRes.status).toBe(201);
-
-			// Act — transition through the lifecycle
-			const presentRes = await transitionQuote(baseUrl, quote.id, {
+			await transitionQuote(baseUrl, quote.id, {
 				status: "presented",
 			});
-			expect(presentRes.status).toBe(200);
-			const presented = await presentRes.json();
-			expect(presented.status).toBe("presented");
 
+			// Act — accept the presented quote
 			const acceptRes = await transitionQuote(baseUrl, quote.id, {
 				status: "accepted",
 			});
+
+			// Assert — final state reflects the full lifecycle
 			expect(acceptRes.status).toBe(200);
 			const accepted = await acceptRes.json();
-
-			// Assert — final state
 			expect(accepted.status).toBe("accepted");
 			expect(accepted.options).toContain(opt.id);
 		});

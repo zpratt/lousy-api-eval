@@ -262,7 +262,17 @@ describe("vehicle and option CRUD", () => {
 		});
 
 		it("should list all options", async () => {
-			// Arrange — at least one option exists from previous tests
+			// Arrange
+			const catRes = await createOptionCategory(baseUrl, {
+				name: chance.word(),
+			});
+			const category = await catRes.json();
+			await createOption(baseUrl, {
+				name: chance.word(),
+				categoryId: category.id,
+				pricingType: "flat",
+				price: 300,
+			});
 
 			// Act
 			const response = await listOptions(baseUrl);
@@ -271,6 +281,7 @@ describe("vehicle and option CRUD", () => {
 			expect(response.status).toBe(200);
 			const options = await response.json();
 			expect(Array.isArray(options)).toBe(true);
+			expect(options.length).toBeGreaterThanOrEqual(1);
 		});
 
 		it("should get an option by id", async () => {
