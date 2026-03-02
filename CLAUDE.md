@@ -39,7 +39,7 @@ Follow this sequence for ALL code changes. Work in small increments — one chan
 5. **Verify pass**: Run `npm test` — confirm pass
 6. **Refactor**: Clean up, remove duplication, keep tests green
 7. **Validate**: `npm test && npm run lint`
-8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. All OWASP API Security Top 10 rules are enforced at error severity.
+8. **Validate OpenAPI specs** (if any exist or were modified): `npm run lint:spectral -- <spec-file>` — this is **mandatory**, not optional. The OWASP API Security Top 10 ruleset is enabled at error severity, with selected rules disabled; see `.spectral.yaml` for details.
 
 Task is NOT complete until all validation passes.
 

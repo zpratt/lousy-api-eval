@@ -198,9 +198,6 @@ paths:
               $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
-
-  # ── Options ─────────────────────────────────────────────────────────────────
-
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -208,6 +205,9 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
       description: Returns all trim levels defined for the specified vehicle model, ordered by level.
+
+  # ── Options ─────────────────────────────────────────────────────────────────
+
   /option-categories:
     post:
       operationId: createOptionCategory
@@ -376,17 +376,17 @@ paths:
               $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
-
-  # ── Quotes ──────────────────────────────────────────────────────────────────
-
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '400':
           $ref: '#/components/responses/BadRequest'
-      description: Retrieves a single vehicle option by ID including its dependencies, exclusions, and trim 
+      description: Retrieves a single vehicle option by ID including its dependencies, exclusions, and trim
         restrictions.
+
+  # ── Quotes ──────────────────────────────────────────────────────────────────
+
   /quotes:
     post:
       operationId: createQuote
@@ -781,13 +781,13 @@ paths:
               $ref: '#/components/headers/AccessControlAllowOrigin'
         "404":
           $ref: "#/components/responses/NotFound"
-
-  # ── Incentive Programs ──────────────────────────────────────────────────────
-
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  # ── Incentive Programs ──────────────────────────────────────────────────────
+
   /incentive-programs:
     post:
       operationId: createIncentiveProgram
@@ -1279,6 +1279,7 @@ components:
     Error:
       type: object
       required: [error]
+      additionalProperties: false
       properties:
         error:
           type: string
