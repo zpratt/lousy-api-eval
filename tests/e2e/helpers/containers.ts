@@ -10,13 +10,26 @@ const APP_PORT = 3000;
 const DB_PORT = 5432;
 
 let cachedAppImage: GenericContainer | undefined;
+let appImagePromise: Promise<GenericContainer> | undefined;
 
 async function getAppImage(): Promise<GenericContainer> {
-	if (!cachedAppImage) {
-		cachedAppImage =
-			await GenericContainer.fromDockerfile(".").build();
+	if (cachedAppImage) {
+		return cachedAppImage;
 	}
-	return cachedAppImage;
+
+	if (!appImagePromise) {
+		appImagePromise = (async () => {
+			const image =
+				await GenericContainer.fromDockerfile(".").build();
+			cachedAppImage = image;
+			return image;
+		})().catch((error) => {
+			appImagePromise = undefined;
+			throw error;
+		});
+	}
+
+	return appImagePromise;
 }
 
 export interface TestInfrastructure {
