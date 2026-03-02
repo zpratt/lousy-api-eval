@@ -76,8 +76,6 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -126,8 +124,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -180,8 +176,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -242,8 +236,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -298,8 +290,6 @@ paths:
 
   # ── Options ─────────────────────────────────────────────────────────────────
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -356,8 +346,6 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -406,8 +394,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -471,8 +457,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -520,8 +504,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -577,8 +559,6 @@ paths:
 
   # ── Quotes ──────────────────────────────────────────────────────────────────
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -640,8 +620,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -689,8 +667,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -744,8 +720,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -906,8 +880,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1009,8 +981,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1070,8 +1040,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1218,8 +1186,6 @@ paths:
 
   # ── Incentive Programs ──────────────────────────────────────────────────────
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1273,8 +1239,6 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1323,8 +1287,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1377,8 +1339,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1442,8 +1402,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1501,8 +1459,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1560,8 +1516,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1677,8 +1631,6 @@ paths:
                 type: string
                 maxLength: 255
                 pattern: ^https?://[\w\-\.]+(:\d+)?$
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1735,8 +1687,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -1840,40 +1790,6 @@ components:
             maxLength: 255
             pattern: ^https?://[\w\-\.]+(:\d+)?$
 
-    Unauthorized:
-      description: Authentication required or token invalid
-      headers:
-        X-RateLimit-Limit:
-          description: Maximum number of requests per time window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
-        X-RateLimit-Remaining:
-          description: Number of requests remaining in the current window
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 1000000
-        X-RateLimit-Reset:
-          description: UTC epoch seconds when the current window resets
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-            maximum: 9999999999
-        Access-Control-Allow-Origin:
-          description: Indicates which origins are allowed to access the resource
-          schema:
-            type: string
-            maxLength: 255
-            pattern: ^https?://[\w\-\.]+(:\d+)?$
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     TooManyRequests:
       description: Rate limit exceeded
       headers:
@@ -2951,12 +2867,3 @@ components:
             that was discounted. Null or absent for other benefit types.
           maxLength: 36
           format: uuid
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: JWT Bearer token authentication. This API complies with RFC8725 for JWT best practices including 
-        short-lived tokens and audience validation.
-security:
-- BearerAuth: []
