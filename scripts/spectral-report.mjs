@@ -67,7 +67,7 @@ function lintSpec(specPath) {
     // In that case, it still prints JSON to stdout that we can parse.
     if (err && typeof err === "object" && "stdout" in err && err.stdout) {
       try {
-        return JSON.parse(err.stdout);
+        return JSON.parse(String(err.stdout));
       } catch {
         // Spectral ran but printed non-JSON; treat as a tool failure.
         throw err;

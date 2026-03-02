@@ -16,14 +16,14 @@ servers:
 
   x-internal: true
 tags:
-- name: Vehicles
-  description: Vehicle models and trim levels
-- name: Options
-  description: Vehicle options and option categories
-- name: Quotes
-  description: Quote creation, configuration, pricing, and lifecycle
-- name: Incentive Programs
-  description: Manufacturer incentive programs, rules, and benefits
+  - name: Vehicles
+    description: Vehicle models and trim levels
+  - name: Options
+    description: Vehicle options and option categories
+  - name: Quotes
+    description: Quote creation, configuration, pricing, and lifecycle
+  - name: Incentive Programs
+    description: Manufacturer incentive programs, rules, and benefits
 
 paths:
   # ── Vehicles ────────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ paths:
       tags: [Vehicles]
       summary: Get a vehicle model by ID
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Vehicle details
@@ -196,7 +196,7 @@ paths:
       tags: [Vehicles]
       summary: Create a trim level for a vehicle
       parameters:
-      - $ref: "#/components/parameters/VehicleId"
+        - $ref: "#/components/parameters/VehicleId"
       requestBody:
         required: true
         content:
@@ -255,7 +255,7 @@ paths:
       tags: [Vehicles]
       summary: List trim levels for a vehicle
       parameters:
-      - $ref: "#/components/parameters/VehicleId"
+        - $ref: "#/components/parameters/VehicleId"
       responses:
         "200":
           description: List of trims
@@ -537,7 +537,7 @@ paths:
       tags: [Options]
       summary: Get an option by ID
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Option details
@@ -706,7 +706,7 @@ paths:
       tags: [Quotes]
       summary: Get a quote by ID
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Quote details
@@ -774,7 +774,7 @@ paths:
 
         - **Status check**: Only quotes in draft status can be modified.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -923,15 +923,15 @@ paths:
         Removes an option from the quote. Only quotes in draft status can be
         modified.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
-      - name: optionId
-        in: path
-        required: true
-        schema:
-          type: string
-          maxLength: 36
-          format: uuid
-        description: The ID of the option to remove
+        - $ref: "#/components/parameters/ResourceId"
+        - name: optionId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 36
+            format: uuid
+          description: The ID of the option to remove
       responses:
         "200":
           description: Option removed from quote
@@ -1033,7 +1033,7 @@ paths:
         - **Destination charge**: Flat fee configured per vehicle model, added
           as a separate line item (not an option)
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Pricing calculated
@@ -1095,7 +1095,7 @@ paths:
         Accepted quotes cannot be modified or reverted. Only draft quotes can
         have options added or removed.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -1340,7 +1340,7 @@ paths:
       tags: [Incentive Programs]
       summary: Get an incentive program by ID
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Program details
@@ -1397,7 +1397,7 @@ paths:
         Adds a rule that must be satisfied for a quote to qualify for this
         program. All rules on a program use AND logic — every rule must pass.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -1456,7 +1456,7 @@ paths:
       tags: [Incentive Programs]
       summary: Add a benefit to a program
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       requestBody:
         required: true
         content:
@@ -1523,7 +1523,7 @@ paths:
         Returns eligible programs, their computed discount amounts, and the
         projected final price after stacking rules are applied.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Eligibility evaluation results
@@ -1601,7 +1601,7 @@ paths:
         `draft` status. Attempting to apply incentives to a quote in any other
         status (`presented`, `accepted`, or `expired`) will return a `409 Conflict` error.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Incentives applied
@@ -1698,7 +1698,7 @@ paths:
         subtotal before incentives, each applied incentive with its name and
         discount amount, and the final price.
       parameters:
-      - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/ResourceId"
       responses:
         "200":
           description: Full pricing breakdown
@@ -1813,9 +1813,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-
-  # ── Schemas ─────────────────────────────────────────────────────────────────
-
       headers:
         X-RateLimit-Limit:
           description: Maximum number of requests per time window
@@ -1844,6 +1841,9 @@ components:
             type: string
             maxLength: 255
             pattern: ^https?://[\w\-\.]+(:\d+)?$
+
+  # ── Schemas ─────────────────────────────────────────────────────────────────
+
     Unauthorized:
       description: Authentication required or token invalid
       headers:
@@ -1964,11 +1964,10 @@ components:
             A specific, human-readable error message describing what went wrong.
             For compatibility violations, the message must identify the specific
             rule that was violated and the options involved.
-
-    # ── Vehicle Schemas ─────────────────────────────────────────────────────
-
           maxLength: 2000
           pattern: ^[\s\S]+$
+
+    # ── Vehicle Schemas ─────────────────────────────────────────────────────
     CreateVehicleRequest:
       type: object
       required: [make, model, year, destinationCharge]

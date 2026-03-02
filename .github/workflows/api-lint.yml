@@ -7,6 +7,8 @@ on:
       - "**/*.openapi.json"
       - "openapi/**"
       - "specs/**"
+      - "openapi.yaml"
+      - "openapi.json"
       - ".spectral.yaml"
 
 jobs:
