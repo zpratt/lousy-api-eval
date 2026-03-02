@@ -16,7 +16,8 @@ rules:
   oas3-valid-schema-example: warn
 
   # --- Security ---
-  oas3-operation-security-defined: error
+  # No auth is required for this API, so operation-security checks are disabled.
+  oas3-operation-security-defined: off
 
   # --- Naming Conventions (customize to your style) ---
   # Uncomment and adjust as needed:
@@ -48,14 +49,16 @@ rules:
   owasp:api1:2023-no-numeric-ids: error
 
   # API2:2023 - Broken Authentication
+  # Rules that prevent insecure auth patterns are kept in case auth is added later.
+  # Rules that require auth to be present are disabled to simplify agent implementation challenges.
   owasp:api2:2023-no-http-basic: error
   owasp:api2:2023-no-api-keys-in-url: error
   owasp:api2:2023-no-credentials-in-url: error
   owasp:api2:2023-auth-insecure-schemes: error
-  owasp:api2:2023-jwt-best-practices: error
-  owasp:api2:2023-short-lived-access-tokens: error
-  owasp:api2:2023-write-restricted: error
-  owasp:api2:2023-read-restricted: error
+  owasp:api2:2023-jwt-best-practices: off
+  owasp:api2:2023-short-lived-access-tokens: off
+  owasp:api2:2023-write-restricted: off
+  owasp:api2:2023-read-restricted: off
 
   # API3:2023 - Broken Object Property Level Authorization
   owasp:api3:2023-no-additionalProperties: error
@@ -85,7 +88,7 @@ rules:
   owasp:api8:2023-no-scheme-http: error
   owasp:api8:2023-no-server-http: error
   owasp:api8:2023-define-error-validation: error
-  owasp:api8:2023-define-error-responses-401: error
+  owasp:api8:2023-define-error-responses-401: off
   owasp:api8:2023-define-error-responses-500: error
 
   # API9:2023 - Improper Inventory Management
