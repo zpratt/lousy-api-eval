@@ -7,6 +7,7 @@ import {
 	createQuote,
 	createTrim,
 	createVehicle,
+	expectStatus,
 	removeQuoteOption,
 	transitionQuote,
 } from "./helpers/api-client.js";
@@ -30,25 +31,39 @@ describe("quote status lifecycle", () => {
 		infra = await setupTestInfrastructure();
 		baseUrl = infra.baseUrl;
 
-		const vehicleRes = await createVehicle(baseUrl, {
-			make: "Lifecycle",
-			model: chance.word(),
-			year: 2025,
-			destinationCharge: 1295,
-		});
-		vehicleId = (await vehicleRes.json()).id;
+		const vehicle = await expectStatus<{ id: string }>(
+			await createVehicle(baseUrl, {
+				make: "Lifecycle",
+				model: chance.word(),
+				year: 2025,
+				destinationCharge: 1295,
+			}),
+			201,
+			"Create vehicle for lifecycle tests",
+		);
+		vehicleId = vehicle.id;
 
-		const trimRes = await createTrim(baseUrl, vehicleId, {
-			name: "LT",
-			level: 2,
-			msrp: 28500,
-		});
-		trimId = (await trimRes.json()).id;
+		trimId = (
+			await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicleId, {
+					name: "LT",
+					level: 2,
+					msrp: 28500,
+				}),
+				201,
+				"Create trim for lifecycle tests",
+			)
+		).id;
 
-		const catRes = await createOptionCategory(baseUrl, {
-			name: chance.word(),
-		});
-		categoryId = (await catRes.json()).id;
+		categoryId = (
+			await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: chance.word(),
+				}),
+				201,
+				"Create category for lifecycle tests",
+			)
+		).id;
 	});
 
 	afterAll(async () => {
@@ -57,12 +72,15 @@ describe("quote status lifecycle", () => {
 
 	/** Helper to create a fresh draft quote */
 	async function createDraftQuote(): Promise<{ id: string }> {
-		const res = await createQuote(baseUrl, {
-			vehicleId,
-			trimId,
-			customerName: chance.name(),
-		});
-		return res.json();
+		return expectStatus<{ id: string }>(
+			await createQuote(baseUrl, {
+				vehicleId,
+				trimId,
+				customerName: chance.name(),
+			}),
+			201,
+			"Create draft quote",
+		);
 	}
 
 	describe("valid transitions", () => {
@@ -84,9 +102,13 @@ describe("quote status lifecycle", () => {
 		it("should transition from presented to accepted", async () => {
 			// Arrange
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
 
 			// Act
 			const response = await transitionQuote(baseUrl, quote.id, {
@@ -102,9 +124,13 @@ describe("quote status lifecycle", () => {
 		it("should transition from presented to expired", async () => {
 			// Arrange
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
 
 			// Act
 			const response = await transitionQuote(baseUrl, quote.id, {
@@ -152,12 +178,20 @@ describe("quote status lifecycle", () => {
 		it("should reject transitioning from accepted to any other status", async () => {
 			// Arrange
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
-			await transitionQuote(baseUrl, quote.id, {
-				status: "accepted",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "accepted",
+				}),
+				200,
+				"Transition quote to accepted",
+			);
 
 			// Act — try to revert to draft
 			const response = await transitionQuote(baseUrl, quote.id, {
@@ -173,12 +207,20 @@ describe("quote status lifecycle", () => {
 		it("should reject transitioning from expired to any other status", async () => {
 			// Arrange
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
-			await transitionQuote(baseUrl, quote.id, {
-				status: "expired",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "expired",
+				}),
+				200,
+				"Transition quote to expired",
+			);
 
 			// Act — try to revert to draft
 			const response = await transitionQuote(baseUrl, quote.id, {
@@ -195,13 +237,16 @@ describe("quote status lifecycle", () => {
 	describe("modification restrictions", () => {
 		it("should allow adding options to a draft quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for draft modification test",
+			);
 
 			const quote = await createDraftQuote();
 
@@ -218,18 +263,25 @@ describe("quote status lifecycle", () => {
 
 		it("should reject adding options to a presented quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for presented modification test",
+			);
 
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
 
 			// Act
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -245,21 +297,32 @@ describe("quote status lifecycle", () => {
 
 		it("should reject adding options to an accepted quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for accepted modification test",
+			);
 
 			const quote = await createDraftQuote();
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
-			await transitionQuote(baseUrl, quote.id, {
-				status: "accepted",
-			});
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "accepted",
+				}),
+				200,
+				"Transition quote to accepted",
+			);
 
 			// Act
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -274,19 +337,32 @@ describe("quote status lifecycle", () => {
 
 		it("should reject removing options from a presented quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for presented removal test",
+			);
 
 			const quote = await createDraftQuote();
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt.id });
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add option to quote before presenting",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
 
 			// Act
 			const response = await removeQuoteOption(
@@ -304,22 +380,39 @@ describe("quote status lifecycle", () => {
 
 		it("should reject removing options from an accepted quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for accepted removal test",
+			);
 
 			const quote = await createDraftQuote();
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt.id });
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
-			await transitionQuote(baseUrl, quote.id, {
-				status: "accepted",
-			});
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add option to quote before accepting",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "accepted",
+				}),
+				200,
+				"Transition quote to accepted",
+			);
 
 			// Act
 			const response = await removeQuoteOption(
@@ -338,21 +431,32 @@ describe("quote status lifecycle", () => {
 	describe("full lifecycle scenario", () => {
 		it("should complete the full lifecycle: create quote, add options, present, and accept", async () => {
 			// Arrange — create option, draft quote, add option, transition to presented
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 1000,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 1000,
+				}),
+				201,
+				"Create option for full lifecycle test",
+			);
 
 			const quote = await createDraftQuote();
-			await addQuoteOption(baseUrl, quote.id, {
-				optionId: opt.id,
-			});
-			await transitionQuote(baseUrl, quote.id, {
-				status: "presented",
-			});
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add option to quote",
+			);
+			await expectStatus(
+				await transitionQuote(baseUrl, quote.id, {
+					status: "presented",
+				}),
+				200,
+				"Transition quote to presented",
+			);
 
 			// Act — accept the presented quote
 			const acceptRes = await transitionQuote(baseUrl, quote.id, {

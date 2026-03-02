@@ -7,6 +7,7 @@ import {
 	createQuote,
 	createTrim,
 	createVehicle,
+	expectStatus,
 	removeQuoteOption,
 } from "./helpers/api-client.js";
 import {
@@ -33,41 +34,64 @@ describe("option compatibility enforcement", () => {
 		baseUrl = infra.baseUrl;
 
 		// Create a vehicle with three trim levels
-		const vehicleRes = await createVehicle(baseUrl, {
-			make: "Chevrolet",
-			model: chance.word(),
-			year: 2025,
-			destinationCharge: 1295,
-		});
-		const vehicle = await vehicleRes.json();
+		const vehicle = await expectStatus<{ id: string }>(
+			await createVehicle(baseUrl, {
+				make: "Chevrolet",
+				model: chance.word(),
+				year: 2025,
+				destinationCharge: 1295,
+			}),
+			201,
+			"Create vehicle for compatibility tests",
+		);
 		vehicleId = vehicle.id;
 
-		const baseTrimRes = await createTrim(baseUrl, vehicleId, {
-			name: "LS",
-			level: 1,
-			msrp: 25000,
-		});
-		baseTrimId = (await baseTrimRes.json()).id;
+		baseTrimId = (
+			await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicleId, {
+					name: "LS",
+					level: 1,
+					msrp: 25000,
+				}),
+				201,
+				"Create LS trim",
+			)
+		).id;
 
-		const sportTrimRes = await createTrim(baseUrl, vehicleId, {
-			name: "Sport",
-			level: 2,
-			msrp: 30000,
-		});
-		sportTrimId = (await sportTrimRes.json()).id;
+		sportTrimId = (
+			await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicleId, {
+					name: "Sport",
+					level: 2,
+					msrp: 30000,
+				}),
+				201,
+				"Create Sport trim",
+			)
+		).id;
 
-		const premiumTrimRes = await createTrim(baseUrl, vehicleId, {
-			name: "Premier",
-			level: 3,
-			msrp: 35000,
-		});
-		premiumTrimId = (await premiumTrimRes.json()).id;
+		premiumTrimId = (
+			await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicleId, {
+					name: "Premier",
+					level: 3,
+					msrp: 35000,
+				}),
+				201,
+				"Create Premier trim",
+			)
+		).id;
 
 		// Create an option category
-		const catRes = await createOptionCategory(baseUrl, {
-			name: "Safety",
-		});
-		categoryId = (await catRes.json()).id;
+		categoryId = (
+			await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: "Safety",
+				}),
+				201,
+				"Create Safety category",
+			)
+		).id;
 	});
 
 	afterAll(async () => {
@@ -77,30 +101,39 @@ describe("option compatibility enforcement", () => {
 	describe("dependency enforcement", () => {
 		it("should reject adding an option when its dependency is missing from the quote", async () => {
 			// Arrange — create option A (no dependencies) and option B (depends on A)
-			const optARes = await createOption(baseUrl, {
-				name: "Forward Collision Alert",
-				categoryId,
-				pricingType: "flat",
-				price: 500,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Forward Collision Alert",
+					categoryId,
+					pricingType: "flat",
+					price: 500,
+				}),
+				201,
+				"Create option A (dependency)",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: "Adaptive Cruise Control",
-				categoryId,
-				pricingType: "flat",
-				price: 1250,
-				dependencies: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Adaptive Cruise Control",
+					categoryId,
+					pricingType: "flat",
+					price: 1250,
+					dependencies: [optA.id],
+				}),
+				201,
+				"Create option B (depends on A)",
+			);
 
 			// Create a quote
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for dependency test",
+			);
 
 			// Act — try to add B without A
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -116,32 +149,47 @@ describe("option compatibility enforcement", () => {
 
 		it("should allow adding an option when its dependency is already on the quote", async () => {
 			// Arrange
-			const optARes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 500,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 500,
+				}),
+				201,
+				"Create option A",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 1250,
-				dependencies: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 1250,
+					dependencies: [optA.id],
+				}),
+				201,
+				"Create option B (depends on A)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for dependency satisfied test",
+			);
 
 			// Add the dependency first
-			await addQuoteOption(baseUrl, quote.id, { optionId: optA.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: optA.id,
+				}),
+				201,
+				"Add dependency option A to quote",
+			);
 
 			// Act — add the dependent option
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -158,38 +206,50 @@ describe("option compatibility enforcement", () => {
 	describe("transitive dependency enforcement", () => {
 		it("should reject adding an option when a transitive dependency is missing", async () => {
 			// Arrange — A has no deps, B depends on A, C depends on B
-			const optARes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 300,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 300,
+				}),
+				201,
+				"Create option A (transitive chain)",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 600,
-				dependencies: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 600,
+					dependencies: [optA.id],
+				}),
+				201,
+				"Create option B (depends on A)",
+			);
 
-			const optCRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 900,
-				dependencies: [optB.id],
-			});
-			const optC = await optCRes.json();
+			const optC = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 900,
+					dependencies: [optB.id],
+				}),
+				201,
+				"Create option C (depends on B)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for transitive dependency test",
+			);
 
 			// Act — try to add C without A or B
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -204,42 +264,66 @@ describe("option compatibility enforcement", () => {
 
 		it("should allow adding option C when both A and B are already on the quote", async () => {
 			// Arrange
-			const optARes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 300,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 300,
+				}),
+				201,
+				"Create option A (transitive success chain)",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 600,
-				dependencies: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 600,
+					dependencies: [optA.id],
+				}),
+				201,
+				"Create option B (depends on A)",
+			);
 
-			const optCRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 900,
-				dependencies: [optB.id],
-			});
-			const optC = await optCRes.json();
+			const optC = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 900,
+					dependencies: [optB.id],
+				}),
+				201,
+				"Create option C (depends on B)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for transitive success test",
+			);
 
 			// Add A then B
-			await addQuoteOption(baseUrl, quote.id, { optionId: optA.id });
-			await addQuoteOption(baseUrl, quote.id, { optionId: optB.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: optA.id,
+				}),
+				201,
+				"Add option A to quote",
+			);
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: optB.id,
+				}),
+				201,
+				"Add option B to quote",
+			);
 
 			// Act — add C
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -256,32 +340,47 @@ describe("option compatibility enforcement", () => {
 	describe("exclusion enforcement", () => {
 		it("should reject adding an option that excludes an option already on the quote", async () => {
 			// Arrange — create option A and option B that excludes A
-			const optARes = await createOption(baseUrl, {
-				name: "Standard Audio",
-				categoryId,
-				pricingType: "flat",
-				price: 0,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Standard Audio",
+					categoryId,
+					pricingType: "flat",
+					price: 0,
+				}),
+				201,
+				"Create Standard Audio option",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: "Premium Audio System",
-				categoryId,
-				pricingType: "flat",
-				price: 1500,
-				exclusions: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Premium Audio System",
+					categoryId,
+					pricingType: "flat",
+					price: 1500,
+					exclusions: [optA.id],
+				}),
+				201,
+				"Create Premium Audio option (excludes Standard)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for exclusion test",
+			);
 
 			// Add A first
-			await addQuoteOption(baseUrl, quote.id, { optionId: optA.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: optA.id,
+				}),
+				201,
+				"Add Standard Audio to quote",
+			);
 
 			// Act — try to add B which excludes A
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -297,29 +396,38 @@ describe("option compatibility enforcement", () => {
 
 		it("should allow adding an option when its excluded option is not on the quote", async () => {
 			// Arrange
-			const optARes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 0,
-			});
-			const optA = await optARes.json();
+			const optA = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 0,
+				}),
+				201,
+				"Create option A for exclusion-absent test",
+			);
 
-			const optBRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 1500,
-				exclusions: [optA.id],
-			});
-			const optB = await optBRes.json();
+			const optB = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 1500,
+					exclusions: [optA.id],
+				}),
+				201,
+				"Create option B (excludes A)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for exclusion-absent test",
+			);
 
 			// Act — add B without A being on the quote
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -334,22 +442,28 @@ describe("option compatibility enforcement", () => {
 	describe("trim restriction enforcement", () => {
 		it("should reject adding a trim-restricted option to a quote with an ineligible trim", async () => {
 			// Arrange — create option restricted to Sport and Premier trims only
-			const optRes = await createOption(baseUrl, {
-				name: "Performance Exhaust",
-				categoryId,
-				pricingType: "flat",
-				price: 1800,
-				trimRestrictions: [sportTrimId, premiumTrimId],
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Performance Exhaust",
+					categoryId,
+					pricingType: "flat",
+					price: 1800,
+					trimRestrictions: [sportTrimId, premiumTrimId],
+				}),
+				201,
+				"Create trim-restricted option",
+			);
 
 			// Create a quote with the base (LS) trim
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote with base trim",
+			);
 
 			// Act — try to add trim-restricted option to base trim quote
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -364,22 +478,28 @@ describe("option compatibility enforcement", () => {
 
 		it("should allow adding a trim-restricted option when the quote trim is in the allowed list", async () => {
 			// Arrange — create option restricted to Sport and Premier trims
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 1800,
-				trimRestrictions: [sportTrimId, premiumTrimId],
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 1800,
+					trimRestrictions: [sportTrimId, premiumTrimId],
+				}),
+				201,
+				"Create trim-restricted option for allowed trim test",
+			);
 
 			// Create a quote with Sport trim
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: sportTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: sportTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote with Sport trim",
+			);
 
 			// Act
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -392,20 +512,26 @@ describe("option compatibility enforcement", () => {
 
 		it("should allow adding an option with no trim restrictions to any trim", async () => {
 			// Arrange — create option with no trim restrictions
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 500,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 500,
+				}),
+				201,
+				"Create unrestricted option",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for unrestricted option test",
+			);
 
 			// Act
 			const response = await addQuoteOption(baseUrl, quote.id, {
@@ -420,22 +546,34 @@ describe("option compatibility enforcement", () => {
 	describe("removing options from a quote", () => {
 		it("should remove an option from a draft quote", async () => {
 			// Arrange
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 750,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 750,
+				}),
+				201,
+				"Create option for removal test",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId: baseTrimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId: baseTrimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for removal test",
+			);
 
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add option to quote before removal",
+			);
 
 			// Act
 			const response = await removeQuoteOption(

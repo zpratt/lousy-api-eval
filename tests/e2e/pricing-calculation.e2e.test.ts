@@ -8,6 +8,7 @@ import {
 	createQuote,
 	createTrim,
 	createVehicle,
+	expectStatus,
 	removeQuoteOption,
 } from "./helpers/api-client.js";
 import {
@@ -33,26 +34,39 @@ describe("pricing calculation", () => {
 		baseUrl = infra.baseUrl;
 
 		// Create vehicle + trim + category for all pricing tests
-		const vehicleRes = await createVehicle(baseUrl, {
-			make: "TestMake",
-			model: chance.word(),
-			year: 2025,
-			destinationCharge: DESTINATION_CHARGE,
-		});
-		const vehicle = await vehicleRes.json();
+		const vehicle = await expectStatus<{ id: string }>(
+			await createVehicle(baseUrl, {
+				make: "TestMake",
+				model: chance.word(),
+				year: 2025,
+				destinationCharge: DESTINATION_CHARGE,
+			}),
+			201,
+			"Create vehicle for pricing tests",
+		);
 		vehicleId = vehicle.id;
 
-		const trimRes = await createTrim(baseUrl, vehicleId, {
-			name: "LT",
-			level: 2,
-			msrp: BASE_MSRP,
-		});
-		trimId = (await trimRes.json()).id;
+		trimId = (
+			await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicleId, {
+					name: "LT",
+					level: 2,
+					msrp: BASE_MSRP,
+				}),
+				201,
+				"Create LT trim for pricing tests",
+			)
+		).id;
 
-		const catRes = await createOptionCategory(baseUrl, {
-			name: "Technology",
-		});
-		categoryId = (await catRes.json()).id;
+		categoryId = (
+			await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: "Technology",
+				}),
+				201,
+				"Create Technology category for pricing tests",
+			)
+		).id;
 	});
 
 	afterAll(async () => {
@@ -62,12 +76,15 @@ describe("pricing calculation", () => {
 	describe("base pricing with no options", () => {
 		it("should calculate total as base MSRP plus destination charge when no options are selected", async () => {
 			// Arrange
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for base pricing test",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -90,31 +107,52 @@ describe("pricing calculation", () => {
 			const optionPrice1 = 450;
 			const optionPrice2 = 1250;
 
-			const opt1Res = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: optionPrice1,
-			});
-			const opt1 = await opt1Res.json();
+			const opt1 = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: optionPrice1,
+				}),
+				201,
+				"Create flat option 1",
+			);
 
-			const opt2Res = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: optionPrice2,
-			});
-			const opt2 = await opt2Res.json();
+			const opt2 = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: optionPrice2,
+				}),
+				201,
+				"Create flat option 2",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for flat option pricing test",
+			);
 
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt1.id });
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt2.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt1.id,
+				}),
+				201,
+				"Add flat option 1 to quote",
+			);
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt2.id,
+				}),
+				201,
+				"Add flat option 2 to quote",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -139,22 +177,34 @@ describe("pricing calculation", () => {
 			const percentageValue = 2.0;
 			const expectedOptionPrice = BASE_MSRP * (percentageValue / 100);
 
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "percentage",
-				price: percentageValue,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "percentage",
+					price: percentageValue,
+				}),
+				201,
+				"Create percentage option",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for percentage pricing test",
+			);
 
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add percentage option to quote",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -179,31 +229,52 @@ describe("pricing calculation", () => {
 			const expectedPercentagePrice =
 				BASE_MSRP * (percentageValue / 100);
 
-			const flatOptRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: flatPrice,
-			});
-			const flatOpt = await flatOptRes.json();
+			const flatOpt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: flatPrice,
+				}),
+				201,
+				"Create flat option for mixed pricing test",
+			);
 
-			const pctOptRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "percentage",
-				price: percentageValue,
-			});
-			const pctOpt = await pctOptRes.json();
+			const pctOpt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "percentage",
+					price: percentageValue,
+				}),
+				201,
+				"Create percentage option for mixed pricing test",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for mixed pricing test",
+			);
 
-			await addQuoteOption(baseUrl, quote.id, { optionId: flatOpt.id });
-			await addQuoteOption(baseUrl, quote.id, { optionId: pctOpt.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: flatOpt.id,
+				}),
+				201,
+				"Add flat option to quote",
+			);
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: pctOpt.id,
+				}),
+				201,
+				"Add percentage option to quote",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -225,37 +296,58 @@ describe("pricing calculation", () => {
 			const packageName = "Technology Package";
 			const packageDiscount = 500;
 
-			const opt1Res = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 1200,
-				packageId,
-				packageName,
-				packageDiscount,
-			});
-			const opt1 = await opt1Res.json();
+			const opt1 = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 1200,
+					packageId,
+					packageName,
+					packageDiscount,
+				}),
+				201,
+				"Create package option 1",
+			);
 
-			const opt2Res = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 800,
-				packageId,
-				packageName,
-				packageDiscount: 0,
-			});
-			const opt2 = await opt2Res.json();
+			const opt2 = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 800,
+					packageId,
+					packageName,
+					packageDiscount: 0,
+				}),
+				201,
+				"Create package option 2",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for package discount test",
+			);
 
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt1.id });
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt2.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt1.id,
+				}),
+				201,
+				"Add package option 1 to quote",
+			);
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt2.id,
+				}),
+				201,
+				"Add package option 2 to quote",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -278,36 +370,52 @@ describe("pricing calculation", () => {
 			const packageId = chance.guid();
 			const packageName = "Safety Package";
 
-			const opt1Res = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 600,
-				packageId,
-				packageName,
-				packageDiscount: 400,
-			});
-			const opt1 = await opt1Res.json();
+			const opt1 = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 600,
+					packageId,
+					packageName,
+					packageDiscount: 400,
+				}),
+				201,
+				"Create package option 1 (partial package test)",
+			);
 
-			await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: 900,
-				packageId,
-				packageName,
-				packageDiscount: 0,
-			});
+			await expectStatus(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: 900,
+					packageId,
+					packageName,
+					packageDiscount: 0,
+				}),
+				201,
+				"Create package option 2 (not added to quote)",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for partial package test",
+			);
 
 			// Only add one of the two package options
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt1.id });
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt1.id,
+				}),
+				201,
+				"Add single package option to quote",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -325,12 +433,15 @@ describe("pricing calculation", () => {
 	describe("destination charge", () => {
 		it("should include destination charge as a separate line item in pricing, not as an option", async () => {
 			// Arrange
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for destination charge test",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -346,27 +457,36 @@ describe("pricing calculation", () => {
 		it("should use the destination charge configured for the specific vehicle model", async () => {
 			// Arrange — create a different vehicle with a different destination charge
 			const differentDestCharge = 1895;
-			const vehicleRes = await createVehicle(baseUrl, {
-				make: "DiffMake",
-				model: chance.word(),
-				year: 2025,
-				destinationCharge: differentDestCharge,
-			});
-			const vehicle = await vehicleRes.json();
+			const vehicle = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, {
+					make: "DiffMake",
+					model: chance.word(),
+					year: 2025,
+					destinationCharge: differentDestCharge,
+				}),
+				201,
+				"Create vehicle with different destination charge",
+			);
 
-			const trimRes = await createTrim(baseUrl, vehicle.id, {
-				name: "Base",
-				level: 1,
-				msrp: 40000,
-			});
-			const trim = await trimRes.json();
+			const trim = await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicle.id, {
+					name: "Base",
+					level: 1,
+					msrp: 40000,
+				}),
+				201,
+				"Create trim for different vehicle",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId: vehicle.id,
-				trimId: trim.id,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId: vehicle.id,
+					trimId: trim.id,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for different destination charge test",
+			);
 
 			// Act
 			const response = await calculateQuote(baseUrl, quote.id);
@@ -383,29 +503,50 @@ describe("pricing calculation", () => {
 		it("should recalculate correctly after adding and removing options", async () => {
 			// Arrange
 			const optionPrice = 1500;
-			const optRes = await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId,
-				pricingType: "flat",
-				price: optionPrice,
-			});
-			const opt = await optRes.json();
+			const opt = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId,
+					pricingType: "flat",
+					price: optionPrice,
+				}),
+				201,
+				"Create option for recalculation test",
+			);
 
-			const quoteRes = await createQuote(baseUrl, {
-				vehicleId,
-				trimId,
-				customerName: chance.name(),
-			});
-			const quote = await quoteRes.json();
+			const quote = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId,
+					trimId,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for recalculation test",
+			);
 
 			// Add option and calculate
-			await addQuoteOption(baseUrl, quote.id, { optionId: opt.id });
-			const calcWithOption = await calculateQuote(baseUrl, quote.id);
-			const pricingWithOption = await calcWithOption.json();
+			await expectStatus(
+				await addQuoteOption(baseUrl, quote.id, {
+					optionId: opt.id,
+				}),
+				201,
+				"Add option to quote for recalculation",
+			);
+			const pricingWithOption = await expectStatus<{
+				optionsTotal: number;
+			}>(
+				await calculateQuote(baseUrl, quote.id),
+				200,
+				"Calculate quote with option",
+			);
 			expect(pricingWithOption.optionsTotal).toBe(optionPrice);
 
 			// Remove option
-			await removeQuoteOption(baseUrl, quote.id, opt.id);
+			await expectStatus(
+				await removeQuoteOption(baseUrl, quote.id, opt.id),
+				200,
+				"Remove option from quote",
+			);
 
 			// Act — recalculate
 			const response = await calculateQuote(baseUrl, quote.id);

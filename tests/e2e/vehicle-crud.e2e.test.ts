@@ -6,6 +6,7 @@ import {
 	createQuote,
 	createTrim,
 	createVehicle,
+	expectStatus,
 	getOption,
 	getQuote,
 	getVehicle,
@@ -67,8 +68,11 @@ describe("vehicle and option CRUD", () => {
 				year: 2025,
 				destinationCharge: 995,
 			};
-			const createResponse = await createVehicle(baseUrl, payload);
-			const created = await createResponse.json();
+			const created = await expectStatus(
+				await createVehicle(baseUrl, payload),
+				201,
+				"Create vehicle for listing test",
+			);
 
 			// Act
 			const response = await listVehicles(baseUrl);
@@ -78,7 +82,7 @@ describe("vehicle and option CRUD", () => {
 			const vehicles = await response.json();
 			expect(Array.isArray(vehicles)).toBe(true);
 			const found = vehicles.find(
-				(v: { id: string }) => v.id === created.id,
+				(v: { id: string }) => v.id === (created as { id: string }).id,
 			);
 			expect(found).toBeDefined();
 			expect(found.make).toBe(payload.make);
@@ -92,8 +96,11 @@ describe("vehicle and option CRUD", () => {
 				year: 2025,
 				destinationCharge: 1495,
 			};
-			const createResponse = await createVehicle(baseUrl, payload);
-			const created = await createResponse.json();
+			const created = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, payload),
+				201,
+				"Create vehicle for get-by-id test",
+			);
 
 			// Act
 			const response = await getVehicle(baseUrl, created.id);
@@ -121,13 +128,16 @@ describe("vehicle and option CRUD", () => {
 	describe("trims", () => {
 		it("should create trim levels for a vehicle", async () => {
 			// Arrange
-			const vehicleRes = await createVehicle(baseUrl, {
-				make: chance.word(),
-				model: chance.word(),
-				year: 2025,
-				destinationCharge: 1295,
-			});
-			const vehicle = await vehicleRes.json();
+			const vehicle = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, {
+					make: chance.word(),
+					model: chance.word(),
+					year: 2025,
+					destinationCharge: 1295,
+				}),
+				201,
+				"Create vehicle for trim creation test",
+			);
 
 			const trimPayload = { name: "LT", level: 2, msrp: 28500 };
 
@@ -150,23 +160,34 @@ describe("vehicle and option CRUD", () => {
 
 		it("should list trims for a vehicle", async () => {
 			// Arrange
-			const vehicleRes = await createVehicle(baseUrl, {
-				make: chance.word(),
-				model: chance.word(),
-				year: 2025,
-				destinationCharge: 1295,
-			});
-			const vehicle = await vehicleRes.json();
-			await createTrim(baseUrl, vehicle.id, {
-				name: "LS",
-				level: 1,
-				msrp: 25000,
-			});
-			await createTrim(baseUrl, vehicle.id, {
-				name: "LT",
-				level: 2,
-				msrp: 28500,
-			});
+			const vehicle = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, {
+					make: chance.word(),
+					model: chance.word(),
+					year: 2025,
+					destinationCharge: 1295,
+				}),
+				201,
+				"Create vehicle for trim listing test",
+			);
+			await expectStatus(
+				await createTrim(baseUrl, vehicle.id, {
+					name: "LS",
+					level: 1,
+					msrp: 25000,
+				}),
+				201,
+				"Create LS trim",
+			);
+			await expectStatus(
+				await createTrim(baseUrl, vehicle.id, {
+					name: "LT",
+					level: 2,
+					msrp: 28500,
+				}),
+				201,
+				"Create LT trim",
+			);
 
 			// Act
 			const response = await listTrims(baseUrl, vehicle.id);
@@ -199,7 +220,11 @@ describe("vehicle and option CRUD", () => {
 		it("should list option categories", async () => {
 			// Arrange
 			const categoryName = chance.word();
-			await createOptionCategory(baseUrl, { name: categoryName });
+			await expectStatus(
+				await createOptionCategory(baseUrl, { name: categoryName }),
+				201,
+				"Create option category for listing test",
+			);
 
 			// Act
 			const response = await listOptionCategories(baseUrl);
@@ -215,10 +240,13 @@ describe("vehicle and option CRUD", () => {
 	describe("options", () => {
 		it("should create a flat-priced option", async () => {
 			// Arrange
-			const catRes = await createOptionCategory(baseUrl, {
-				name: chance.word(),
-			});
-			const category = await catRes.json();
+			const category = await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: chance.word(),
+				}),
+				201,
+				"Create category for flat option test",
+			);
 			const optionPayload = {
 				name: "Heated Seats",
 				categoryId: category.id,
@@ -241,10 +269,13 @@ describe("vehicle and option CRUD", () => {
 
 		it("should create a percentage-priced option", async () => {
 			// Arrange
-			const catRes = await createOptionCategory(baseUrl, {
-				name: chance.word(),
-			});
-			const category = await catRes.json();
+			const category = await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: chance.word(),
+				}),
+				201,
+				"Create category for percentage option test",
+			);
 
 			// Act
 			const response = await createOption(baseUrl, {
@@ -263,16 +294,23 @@ describe("vehicle and option CRUD", () => {
 
 		it("should list all options", async () => {
 			// Arrange
-			const catRes = await createOptionCategory(baseUrl, {
-				name: chance.word(),
-			});
-			const category = await catRes.json();
-			await createOption(baseUrl, {
-				name: chance.word(),
-				categoryId: category.id,
-				pricingType: "flat",
-				price: 300,
-			});
+			const category = await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: chance.word(),
+				}),
+				201,
+				"Create category for option listing test",
+			);
+			await expectStatus(
+				await createOption(baseUrl, {
+					name: chance.word(),
+					categoryId: category.id,
+					pricingType: "flat",
+					price: 300,
+				}),
+				201,
+				"Create option for listing test",
+			);
 
 			// Act
 			const response = await listOptions(baseUrl);
@@ -286,17 +324,23 @@ describe("vehicle and option CRUD", () => {
 
 		it("should get an option by id", async () => {
 			// Arrange
-			const catRes = await createOptionCategory(baseUrl, {
-				name: chance.word(),
-			});
-			const category = await catRes.json();
-			const createRes = await createOption(baseUrl, {
-				name: "Sunroof",
-				categoryId: category.id,
-				pricingType: "flat",
-				price: 1200,
-			});
-			const created = await createRes.json();
+			const category = await expectStatus<{ id: string }>(
+				await createOptionCategory(baseUrl, {
+					name: chance.word(),
+				}),
+				201,
+				"Create category for get-option test",
+			);
+			const created = await expectStatus<{ id: string }>(
+				await createOption(baseUrl, {
+					name: "Sunroof",
+					categoryId: category.id,
+					pricingType: "flat",
+					price: 1200,
+				}),
+				201,
+				"Create option for get-by-id test",
+			);
 
 			// Act
 			const response = await getOption(baseUrl, created.id);
@@ -312,19 +356,25 @@ describe("vehicle and option CRUD", () => {
 	describe("quotes", () => {
 		it("should create a quote in draft status", async () => {
 			// Arrange
-			const vehicleRes = await createVehicle(baseUrl, {
-				make: chance.word(),
-				model: chance.word(),
-				year: 2025,
-				destinationCharge: 1295,
-			});
-			const vehicle = await vehicleRes.json();
-			const trimRes = await createTrim(baseUrl, vehicle.id, {
-				name: "LT",
-				level: 2,
-				msrp: 28500,
-			});
-			const trim = await trimRes.json();
+			const vehicle = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, {
+					make: chance.word(),
+					model: chance.word(),
+					year: 2025,
+					destinationCharge: 1295,
+				}),
+				201,
+				"Create vehicle for quote test",
+			);
+			const trim = await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicle.id, {
+					name: "LT",
+					level: 2,
+					msrp: 28500,
+				}),
+				201,
+				"Create trim for quote test",
+			);
 
 			const customerName = chance.name();
 
@@ -359,26 +409,34 @@ describe("vehicle and option CRUD", () => {
 
 		it("should get a quote by id", async () => {
 			// Arrange
-			const vehicleRes = await createVehicle(baseUrl, {
-				make: chance.word(),
-				model: chance.word(),
-				year: 2025,
-				destinationCharge: 1295,
-			});
-			const vehicle = await vehicleRes.json();
-			const trimRes = await createTrim(baseUrl, vehicle.id, {
-				name: "LS",
-				level: 1,
-				msrp: 25000,
-			});
-			const trim = await trimRes.json();
-
-			const createRes = await createQuote(baseUrl, {
-				vehicleId: vehicle.id,
-				trimId: trim.id,
-				customerName: chance.name(),
-			});
-			const created = await createRes.json();
+			const vehicle = await expectStatus<{ id: string }>(
+				await createVehicle(baseUrl, {
+					make: chance.word(),
+					model: chance.word(),
+					year: 2025,
+					destinationCharge: 1295,
+				}),
+				201,
+				"Create vehicle for get-quote test",
+			);
+			const trim = await expectStatus<{ id: string }>(
+				await createTrim(baseUrl, vehicle.id, {
+					name: "LS",
+					level: 1,
+					msrp: 25000,
+				}),
+				201,
+				"Create trim for get-quote test",
+			);
+			const created = await expectStatus<{ id: string }>(
+				await createQuote(baseUrl, {
+					vehicleId: vehicle.id,
+					trimId: trim.id,
+					customerName: chance.name(),
+				}),
+				201,
+				"Create quote for get-by-id test",
+			);
 
 			// Act
 			const response = await getQuote(baseUrl, created.id);

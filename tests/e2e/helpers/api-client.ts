@@ -13,6 +13,38 @@ async function request(
 	return fetch(`${baseUrl}${path}`, options);
 }
 
+/**
+ * Assert that a response has the expected HTTP status and return the parsed
+ * JSON body. When the status does not match, throws an error that includes
+ * the context label, actual vs expected status, and the full response body
+ * so that both humans and coding agents can quickly identify the root cause.
+ */
+export async function expectStatus<T = unknown>(
+	response: Response,
+	expectedStatus: number,
+	context: string,
+): Promise<T> {
+	const bodyText = await response.text();
+	let body: unknown;
+	try {
+		body = JSON.parse(bodyText);
+	} catch {
+		body = bodyText;
+	}
+
+	if (response.status !== expectedStatus) {
+		const detail =
+			typeof body === "string"
+				? body
+				: JSON.stringify(body, null, 2);
+		throw new Error(
+			`[${context}] Expected HTTP ${expectedStatus} but received ${response.status}\nResponse body:\n${detail}`,
+		);
+	}
+
+	return body as T;
+}
+
 // ── Vehicles ─────────────────────────────────────────────────────────────────
 
 export function createVehicle(
