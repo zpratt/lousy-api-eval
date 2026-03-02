@@ -124,7 +124,7 @@ function summarize(specPath, violations) {
 
 // --- Main ---
 const args = process.argv.slice(2);
-const specs = args.length > 0 ? args.map((a) => resolve(a)) : findSpecs(REPO_ROOT);
+const specs = args.length > 0 ? args.map((a) => resolve(REPO_ROOT, a)) : findSpecs(REPO_ROOT);
 
 if (specs.length === 0) {
   // biome-ignore lint/suspicious/noConsole: CLI script requires stdout/stderr

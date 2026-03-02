@@ -2126,8 +2126,8 @@ components:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           description: >
             IDs of options that MUST be present on the quote when this option is
             selected. Transitive dependencies are enforced: if this option
@@ -2138,8 +2138,8 @@ components:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           description: >
             IDs of options that CANNOT be present on the quote when this option
             is selected.
@@ -2149,8 +2149,8 @@ components:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           description: >
             IDs of trims this option is available on. If empty or omitted, the
             option is available on all trims. When set, the quote's trim must
@@ -2217,22 +2217,22 @@ components:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           maxItems: 100
         exclusions:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           maxItems: 100
         trimRestrictions:
           type: array
           items:
             type: string
-            maxLength: 255
-            pattern: ^[\s\S]*$
+            maxLength: 36
+            format: uuid
           maxItems: 100
         packageId:
           type: ["string", "null"]
