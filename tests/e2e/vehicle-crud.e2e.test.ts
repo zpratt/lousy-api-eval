@@ -78,11 +78,14 @@ describe("vehicle and option CRUD", () => {
 			);
 			expect(categories.length).toBeGreaterThanOrEqual(3);
 
-			const options = await expectStatus<Array<{ categoryId: string }>>(
-				optionsRes,
-				200,
-				"List seeded options",
-			);
+			const options = await expectStatus<
+				Array<{
+					categoryId: string;
+					dependencies?: string[];
+					exclusions?: string[];
+					trimRestrictions?: string[];
+				}>
+			>(optionsRes, 200, "List seeded options");
 			expect(options.length).toBeGreaterThanOrEqual(10);
 
 			// Every option should reference a valid category
@@ -90,6 +93,25 @@ describe("vehicle and option CRUD", () => {
 			for (const option of options) {
 				expect(categoryIds.has(option.categoryId)).toBe(true);
 			}
+
+			// Assert rule coverage per A9 spec (>=3 dep rules, >=2 exclusions, >=2 trim restrictions)
+			const totalDependencies = options.reduce(
+				(sum, o) => sum + (o.dependencies?.length ?? 0),
+				0,
+			);
+			expect(totalDependencies).toBeGreaterThanOrEqual(3);
+
+			const totalExclusions = options.reduce(
+				(sum, o) => sum + (o.exclusions?.length ?? 0),
+				0,
+			);
+			expect(totalExclusions).toBeGreaterThanOrEqual(2);
+
+			const totalTrimRestrictions = options.reduce(
+				(sum, o) => sum + (o.trimRestrictions?.length ?? 0),
+				0,
+			);
+			expect(totalTrimRestrictions).toBeGreaterThanOrEqual(2);
 		});
 	});
 

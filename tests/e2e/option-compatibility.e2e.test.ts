@@ -453,11 +453,12 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			await expectStatus<unknown>(
+			const updatedQuote = await expectStatus<{ options: string[] }>(
 				response,
 				201,
 				"Allow adding option B when excluded option A is not on the quote",
 			);
+			expect(updatedQuote.options).toContain(optB.id);
 		});
 	});
 
@@ -533,11 +534,12 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			await expectStatus<unknown>(
+			const updatedQuote = await expectStatus<{ options: string[] }>(
 				response,
 				201,
 				"Allow adding trim-restricted option when quote trim is in the allowed list",
 			);
+			expect(updatedQuote.options).toContain(opt.id);
 		});
 
 		it("should allow adding an option with no trim restrictions to any trim", async () => {
@@ -569,11 +571,12 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			await expectStatus<unknown>(
+			const updatedQuote = await expectStatus<{ options: string[] }>(
 				response,
 				201,
 				"Allow adding unrestricted option to any trim",
 			);
+			expect(updatedQuote.options).toContain(opt.id);
 		});
 	});
 
