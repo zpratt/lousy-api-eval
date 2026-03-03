@@ -9,27 +9,27 @@ import {
 const APP_PORT = 3000;
 const DB_PORT = 5432;
 
-let cachedAppImage: GenericContainer | undefined;
-let appImagePromise: Promise<GenericContainer> | undefined;
+const APP_IMAGE_NAME = "lousy-api-eval-test:latest";
+let cachedImageName: string | undefined;
+let imagePromise: Promise<string> | undefined;
 
-async function getAppImage(): Promise<GenericContainer> {
-	if (cachedAppImage) {
-		return cachedAppImage;
+async function ensureAppImageBuilt(): Promise<string> {
+	if (cachedImageName) {
+		return cachedImageName;
 	}
 
-	if (!appImagePromise) {
-		appImagePromise = (async () => {
-			const image =
-				await GenericContainer.fromDockerfile(".").build();
-			cachedAppImage = image;
-			return image;
+	if (!imagePromise) {
+		imagePromise = (async () => {
+			await GenericContainer.fromDockerfile(".").build(APP_IMAGE_NAME);
+			cachedImageName = APP_IMAGE_NAME;
+			return APP_IMAGE_NAME;
 		})().catch((error) => {
-			appImagePromise = undefined;
+			imagePromise = undefined;
 			throw error;
 		});
 	}
 
-	return appImagePromise;
+	return imagePromise;
 }
 
 export interface TestInfrastructure {
@@ -51,17 +51,15 @@ export async function startPostgres(
 			POSTGRES_PASSWORD: "test",
 			POSTGRES_DB: "testdb",
 		})
-		.withWaitStrategy(
-			Wait.forLogMessage("ready to accept connections"),
-		)
+		.withWaitStrategy(Wait.forLogMessage("ready to accept connections"))
 		.start();
 }
 
 export async function startApp(
 	network: StartedNetwork,
 ): Promise<StartedTestContainer> {
-	const image = await getAppImage();
-	return image
+	const imageName = await ensureAppImageBuilt();
+	return new GenericContainer(imageName)
 		.withNetwork(network)
 		.withExposedPorts(APP_PORT)
 		.withEnvironment({
