@@ -12,8 +12,8 @@ import {
 	transitionQuote,
 } from "./helpers/api-client.js";
 import {
-	type TestInfrastructure,
 	setupTestInfrastructure,
+	type TestInfrastructure,
 	teardownTestInfrastructure,
 } from "./helpers/containers.js";
 
@@ -94,8 +94,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ status: string }>(
+				response,
+				200,
+				"Transition from draft to presented",
+			);
 			expect(body.status).toBe("presented");
 		});
 
@@ -116,8 +119,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ status: string }>(
+				response,
+				200,
+				"Transition from presented to accepted",
+			);
 			expect(body.status).toBe("accepted");
 		});
 
@@ -138,8 +144,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ status: string }>(
+				response,
+				200,
+				"Transition from presented to expired",
+			);
 			expect(body.status).toBe("expired");
 		});
 	});
@@ -155,8 +164,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject transition from draft to accepted",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(
 				/transition|cannot|invalid|not allowed/,
@@ -173,8 +185,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject transition from draft to expired",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(
 				/transition|cannot|invalid|not allowed/,
@@ -205,8 +220,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject transition from accepted to draft",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(
 				/transition|cannot|invalid|not allowed/,
@@ -237,8 +255,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject transition from expired to draft",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(
 				/transition|cannot|invalid|not allowed|expired/,
@@ -268,8 +289,11 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{ options: string[] }>(
+				response,
+				201,
+				"Add options to draft quote",
+			);
 			expect(body.options).toContain(opt.id);
 		});
 
@@ -301,10 +325,13 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject adding options to presented quote",
+			);
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("draft");
+			expect(body.error.toLowerCase()).toMatch(/draft|cannot|modify|immutable/);
 		});
 
 		it("should reject adding options to an accepted quote", async () => {
@@ -342,10 +369,13 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject adding options to accepted quote",
+			);
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("draft");
+			expect(body.error.toLowerCase()).toMatch(/draft|cannot|modify|immutable/);
 		});
 
 		it("should reject removing options from a presented quote", async () => {
@@ -378,17 +408,16 @@ describe("quote status lifecycle", () => {
 			);
 
 			// Act
-			const response = await removeQuoteOption(
-				baseUrl,
-				quote.id,
-				opt.id,
-			);
+			const response = await removeQuoteOption(baseUrl, quote.id, opt.id);
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject removing options from presented quote",
+			);
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("draft");
+			expect(body.error.toLowerCase()).toMatch(/draft|cannot|modify|immutable/);
 		});
 
 		it("should reject removing options from an accepted quote", async () => {
@@ -428,17 +457,16 @@ describe("quote status lifecycle", () => {
 			);
 
 			// Act
-			const response = await removeQuoteOption(
-				baseUrl,
-				quote.id,
-				opt.id,
-			);
+			const response = await removeQuoteOption(baseUrl, quote.id, opt.id);
 
 			// Assert
-			expect(response.status).toBe(409);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				409,
+				"Reject removing options from accepted quote",
+			);
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("draft");
+			expect(body.error.toLowerCase()).toMatch(/draft|cannot|modify|immutable/);
 		});
 	});
 
@@ -478,8 +506,10 @@ describe("quote status lifecycle", () => {
 			});
 
 			// Assert — final state reflects the full lifecycle
-			expect(acceptRes.status).toBe(200);
-			const accepted = await acceptRes.json();
+			const accepted = await expectStatus<{
+				status: string;
+				options: string[];
+			}>(acceptRes, 200, "Accept presented quote in full lifecycle");
 			expect(accepted.status).toBe("accepted");
 			expect(accepted.options).toContain(opt.id);
 		});

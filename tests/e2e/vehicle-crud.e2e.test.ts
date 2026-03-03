@@ -43,16 +43,20 @@ describe("vehicle and option CRUD", () => {
 			const vehiclesRes = await listVehicles(baseUrl);
 
 			// Assert — API should include realistic seed data
-			expect(vehiclesRes.status).toBe(200);
-			const vehicles = await vehiclesRes.json();
+			const vehicles = await expectStatus<Array<{ id: string }>>(
+				vehiclesRes,
+				200,
+				"List seeded vehicles",
+			);
 			expect(Array.isArray(vehicles)).toBe(true);
 			expect(vehicles.length).toBeGreaterThanOrEqual(2);
 
 			// Each seeded vehicle should have at least 3 trims (per A9 spec)
 			for (const vehicle of vehicles.slice(0, 2)) {
 				const trimsRes = await listTrims(baseUrl, vehicle.id);
-				expect(trimsRes.status).toBe(200);
-				const trims = await trimsRes.json();
+				const trims = await expectStatus<
+					Array<{ vehicleId: string; msrp: number }>
+				>(trimsRes, 200, "List trims for seeded vehicle");
 				expect(trims.length).toBeGreaterThanOrEqual(3);
 				for (const trim of trims) {
 					expect(trim.vehicleId).toBe(vehicle.id);
@@ -67,18 +71,22 @@ describe("vehicle and option CRUD", () => {
 			const optionsRes = await listOptions(baseUrl);
 
 			// Assert — API should seed categories and options
-			expect(categoriesRes.status).toBe(200);
-			const categories = await categoriesRes.json();
+			const categories = await expectStatus<Array<{ id: string }>>(
+				categoriesRes,
+				200,
+				"List seeded option categories",
+			);
 			expect(categories.length).toBeGreaterThanOrEqual(3);
 
-			expect(optionsRes.status).toBe(200);
-			const options = await optionsRes.json();
+			const options = await expectStatus<Array<{ categoryId: string }>>(
+				optionsRes,
+				200,
+				"List seeded options",
+			);
 			expect(options.length).toBeGreaterThanOrEqual(10);
 
 			// Every option should reference a valid category
-			const categoryIds = new Set(
-				categories.map((c: { id: string }) => c.id),
-			);
+			const categoryIds = new Set(categories.map((c: { id: string }) => c.id));
 			for (const option of options) {
 				expect(categoryIds.has(option.categoryId)).toBe(true);
 			}
@@ -99,8 +107,13 @@ describe("vehicle and option CRUD", () => {
 			const response = await createVehicle(baseUrl, payload);
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{
+				id: string;
+				make: string;
+				model: string;
+				year: number;
+				destinationCharge: number;
+			}>(response, 201, "Create vehicle");
 			expect(body.id).toBeDefined();
 			expect(body.make).toBe(payload.make);
 			expect(body.model).toBe(payload.model);
@@ -126,8 +139,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await listVehicles(baseUrl);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const vehicles = await response.json();
+			const vehicles = await expectStatus<Array<{ id: string; make: string }>>(
+				response,
+				200,
+				"List all created vehicles",
+			);
 			expect(Array.isArray(vehicles)).toBe(true);
 			const found = vehicles.find((v: { id: string }) => v.id === created.id);
 			expect(found).toBeDefined();
@@ -152,8 +168,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await getVehicle(baseUrl, created.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{
+				id: string;
+				make: string;
+				destinationCharge: number;
+			}>(response, 200, "Get vehicle by id");
 			expect(body.id).toBe(created.id);
 			expect(body.make).toBe(payload.make);
 			expect(body.destinationCharge).toBe(payload.destinationCharge);
@@ -191,8 +210,13 @@ describe("vehicle and option CRUD", () => {
 			const response = await createTrim(baseUrl, vehicle.id, trimPayload);
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{
+				id: string;
+				vehicleId: string;
+				name: string;
+				level: number;
+				msrp: number;
+			}>(response, 201, "Create trim levels for a vehicle");
 			expect(body.id).toBeDefined();
 			expect(body.vehicleId).toBe(vehicle.id);
 			expect(body.name).toBe(trimPayload.name);
@@ -235,8 +259,9 @@ describe("vehicle and option CRUD", () => {
 			const response = await listTrims(baseUrl, vehicle.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const trims = await response.json();
+			const trims = await expectStatus<
+				Array<{ id: string; vehicleId: string }>
+			>(response, 200, "List trims for a vehicle");
 			expect(Array.isArray(trims)).toBe(true);
 			expect(trims.length).toBeGreaterThanOrEqual(2);
 			const trimIds = trims.map((t: { id: string }) => t.id);
@@ -259,8 +284,11 @@ describe("vehicle and option CRUD", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{ id: string; name: string }>(
+				response,
+				201,
+				"Create an option category",
+			);
 			expect(body.id).toBeDefined();
 			expect(body.name).toBe(categoryName);
 		});
@@ -278,8 +306,9 @@ describe("vehicle and option CRUD", () => {
 			const response = await listOptionCategories(baseUrl);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const categories = await response.json();
+			const categories = await expectStatus<
+				Array<{ id: string; name: string }>
+			>(response, 200, "List option categories");
 			expect(Array.isArray(categories)).toBe(true);
 			const found = categories.find((c: { id: string }) => c.id === created.id);
 			expect(found).toBeDefined();
@@ -308,8 +337,13 @@ describe("vehicle and option CRUD", () => {
 			const response = await createOption(baseUrl, optionPayload);
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{
+				id: string;
+				name: string;
+				categoryId: string;
+				pricingType: string;
+				price: number;
+			}>(response, 201, "Create a flat-priced option");
 			expect(body.id).toBeDefined();
 			expect(body.name).toBe(optionPayload.name);
 			expect(body.categoryId).toBe(category.id);
@@ -336,8 +370,11 @@ describe("vehicle and option CRUD", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{ pricingType: string; price: number }>(
+				response,
+				201,
+				"Create a percentage-priced option",
+			);
 			expect(body.pricingType).toBe("percentage");
 			expect(body.price).toBe(2.0);
 		});
@@ -367,8 +404,9 @@ describe("vehicle and option CRUD", () => {
 			const response = await listOptions(baseUrl);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const options = await response.json();
+			const options = await expectStatus<
+				Array<{ id: string; categoryId: string; pricingType: string }>
+			>(response, 200, "List all options");
 			expect(Array.isArray(options)).toBe(true);
 			const found = options.find((o: { id: string }) => o.id === created.id);
 			expect(found).toBeDefined();
@@ -400,8 +438,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await getOption(baseUrl, created.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ id: string; name: string }>(
+				response,
+				200,
+				"Get option by id",
+			);
 			expect(body.id).toBe(created.id);
 			expect(body.name).toBe("Sunroof");
 		});
@@ -440,8 +481,15 @@ describe("vehicle and option CRUD", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{
+				id: string;
+				vehicleId: string;
+				trimId: string;
+				customerName: string;
+				status: string;
+				options: unknown[];
+				appliedIncentives: unknown[];
+			}>(response, 201, "Create a quote in draft status");
 			expect(body.id).toBeDefined();
 			expect(body.vehicleId).toBe(vehicle.id);
 			expect(body.trimId).toBe(trim.id);
@@ -486,8 +534,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await listQuotes(baseUrl);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const quotes = await response.json();
+			const quotes = await expectStatus<Array<{ id: string; status: string }>>(
+				response,
+				200,
+				"List quotes",
+			);
 			expect(Array.isArray(quotes)).toBe(true);
 			const found = quotes.find((q: { id: string }) => q.id === created.id);
 			expect(found).toBeDefined();
@@ -529,8 +580,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await getQuote(baseUrl, created.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ id: string; status: string }>(
+				response,
+				200,
+				"Get quote by id",
+			);
 			expect(body.id).toBe(created.id);
 			expect(body.status).toBe("draft");
 		});

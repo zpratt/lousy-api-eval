@@ -11,8 +11,8 @@ import {
 	removeQuoteOption,
 } from "./helpers/api-client.js";
 import {
-	type TestInfrastructure,
 	setupTestInfrastructure,
+	type TestInfrastructure,
 	teardownTestInfrastructure,
 } from "./helpers/containers.js";
 
@@ -141,8 +141,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert — should be rejected with a specific error message
-			expect(response.status).toBe(400);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				400,
+				"Reject adding option with missing dependency",
+			);
 			expect(body.error).toBeDefined();
 			const normalizedError = body.error.toLowerCase();
 			expect(normalizedError).toMatch(/require|depend/);
@@ -198,8 +201,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{ options: string[] }>(
+				response,
+				201,
+				"Add option with satisfied dependency",
+			);
 			expect(body.options).toContain(optB.id);
 		});
 	});
@@ -258,8 +264,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(400);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				400,
+				"Reject adding option with missing transitive dependency",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(/require|depend/);
 		});
@@ -333,8 +342,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
-			const body = await response.json();
+			const body = await expectStatus<{ options: string[] }>(
+				response,
+				201,
+				"Add option C with satisfied transitive dependencies",
+			);
 			expect(body.options).toContain(optC.id);
 		});
 	});
@@ -390,8 +402,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(400);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				400,
+				"Reject adding option that excludes existing option",
+			);
 			expect(body.error).toBeDefined();
 			const errorMessage = body.error.toLowerCase();
 			expect(errorMessage).toMatch(/exclu|conflict|incompat/);
@@ -474,8 +489,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(400);
-			const body = await response.json();
+			const body = await expectStatus<{ error: string }>(
+				response,
+				400,
+				"Reject adding trim-restricted option to ineligible trim",
+			);
 			expect(body.error).toBeDefined();
 			expect(body.error.toLowerCase()).toMatch(/trim|restrict|available/);
 		});
@@ -580,15 +598,14 @@ describe("option compatibility enforcement", () => {
 			);
 
 			// Act
-			const response = await removeQuoteOption(
-				baseUrl,
-				quote.id,
-				opt.id,
-			);
+			const response = await removeQuoteOption(baseUrl, quote.id, opt.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const body = await response.json();
+			const body = await expectStatus<{ options: string[] }>(
+				response,
+				200,
+				"Remove option from draft quote",
+			);
 			expect(body.options).not.toContain(opt.id);
 		});
 	});

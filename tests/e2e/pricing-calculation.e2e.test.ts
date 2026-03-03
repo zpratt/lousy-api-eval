@@ -12,8 +12,8 @@ import {
 	removeQuoteOption,
 } from "./helpers/api-client.js";
 import {
-	type TestInfrastructure,
 	setupTestInfrastructure,
+	type TestInfrastructure,
 	teardownTestInfrastructure,
 } from "./helpers/containers.js";
 
@@ -90,8 +90,14 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				quoteId: string;
+				baseMsrp: number;
+				optionsTotal: number;
+				packageDiscount: number;
+				destinationCharge: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate base pricing with no options");
 			expect(pricing.quoteId).toBe(quote.id);
 			expect(pricing.baseMsrp).toBe(BASE_MSRP);
 			expect(pricing.optionsTotal).toBe(0);
@@ -158,15 +164,15 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				baseMsrp: number;
+				optionsTotal: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate flat option pricing");
 			expect(pricing.baseMsrp).toBe(BASE_MSRP);
 			expect(pricing.optionsTotal).toBe(optionPrice1 + optionPrice2);
 			expect(pricing.totalPrice).toBe(
-				BASE_MSRP +
-					optionPrice1 +
-					optionPrice2 +
-					DESTINATION_CHARGE,
+				BASE_MSRP + optionPrice1 + optionPrice2 + DESTINATION_CHARGE,
 			);
 		});
 	});
@@ -210,12 +216,11 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
-			expect(pricing.optionsTotal).toBeCloseTo(
-				expectedOptionPrice,
-				2,
-			);
+			const pricing = await expectStatus<{
+				optionsTotal: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate percentage option pricing");
+			expect(pricing.optionsTotal).toBeCloseTo(expectedOptionPrice, 2);
 			expect(pricing.totalPrice).toBeCloseTo(
 				BASE_MSRP + expectedOptionPrice + DESTINATION_CHARGE,
 				2,
@@ -226,8 +231,7 @@ describe("pricing calculation", () => {
 			// Arrange
 			const flatPrice = 800;
 			const percentageValue = 3.0;
-			const expectedPercentagePrice =
-				BASE_MSRP * (percentageValue / 100);
+			const expectedPercentagePrice = BASE_MSRP * (percentageValue / 100);
 
 			const flatOpt = await expectStatus<{ id: string }>(
 				await createOption(baseUrl, {
@@ -280,8 +284,11 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{ optionsTotal: number }>(
+				response,
+				200,
+				"Calculate combined flat and percentage option pricing",
+			);
 			expect(pricing.optionsTotal).toBeCloseTo(
 				flatPrice + expectedPercentagePrice,
 				2,
@@ -353,15 +360,13 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				packageDiscount: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate pricing with package discount");
 			expect(pricing.packageDiscount).toBe(packageDiscount);
 			expect(pricing.totalPrice).toBe(
-				BASE_MSRP +
-					1200 +
-					800 -
-					packageDiscount +
-					DESTINATION_CHARGE,
+				BASE_MSRP + 1200 + 800 - packageDiscount + DESTINATION_CHARGE,
 			);
 		});
 
@@ -421,12 +426,12 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				packageDiscount: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate pricing with partial package");
 			expect(pricing.packageDiscount).toBe(0);
-			expect(pricing.totalPrice).toBe(
-				BASE_MSRP + 600 + DESTINATION_CHARGE,
-			);
+			expect(pricing.totalPrice).toBe(BASE_MSRP + 600 + DESTINATION_CHARGE);
 		});
 	});
 
@@ -447,8 +452,11 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				destinationCharge: number;
+				optionsTotal: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate destination charge as separate line item");
 			expect(pricing.destinationCharge).toBe(DESTINATION_CHARGE);
 			expect(pricing.optionsTotal).toBe(0);
 			expect(pricing.totalPrice).toBe(BASE_MSRP + DESTINATION_CHARGE);
@@ -492,8 +500,10 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				destinationCharge: number;
+				totalPrice: number;
+			}>(response, 200, "Calculate vehicle-specific destination charge");
 			expect(pricing.destinationCharge).toBe(differentDestCharge);
 			expect(pricing.totalPrice).toBe(40000 + differentDestCharge);
 		});
@@ -552,8 +562,10 @@ describe("pricing calculation", () => {
 			const response = await calculateQuote(baseUrl, quote.id);
 
 			// Assert
-			expect(response.status).toBe(200);
-			const pricing = await response.json();
+			const pricing = await expectStatus<{
+				optionsTotal: number;
+				totalPrice: number;
+			}>(response, 200, "Recalculate pricing after option removal");
 			expect(pricing.optionsTotal).toBe(0);
 			expect(pricing.totalPrice).toBe(BASE_MSRP + DESTINATION_CHARGE);
 		});
