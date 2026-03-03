@@ -82,14 +82,14 @@ describe("option compatibility enforcement", () => {
 			)
 		).id;
 
-		// Create an option category
+		// Create an option category with a unique name to avoid collisions with seeded data
 		categoryId = (
 			await expectStatus<{ id: string }>(
 				await createOptionCategory(baseUrl, {
-					name: "Safety",
+					name: `${chance.word({ length: 8 })}-safety`,
 				}),
 				201,
-				"Create Safety category",
+				"Create safety category",
 			)
 		).id;
 	});

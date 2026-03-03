@@ -70,13 +70,13 @@ describe("vehicle and option CRUD", () => {
 			const categoriesRes = await listOptionCategories(baseUrl);
 			const optionsRes = await listOptions(baseUrl);
 
-			// Assert — API should seed categories and options
+			// Assert — API should seed at least one category and 10+ options
 			const categories = await expectStatus<Array<{ id: string }>>(
 				categoriesRes,
 				200,
 				"List seeded option categories",
 			);
-			expect(categories.length).toBeGreaterThanOrEqual(3);
+			expect(categories.length).toBeGreaterThanOrEqual(1);
 
 			const options = await expectStatus<
 				Array<{
@@ -93,6 +93,10 @@ describe("vehicle and option CRUD", () => {
 			for (const option of options) {
 				expect(categoryIds.has(option.categoryId)).toBe(true);
 			}
+
+			// Options should span at least 2 distinct categories (spec: "10+ options across categories")
+			const distinctCategoryIdsInOptions = new Set(options.map((o) => o.categoryId));
+			expect(distinctCategoryIdsInOptions.size).toBeGreaterThanOrEqual(2);
 
 			// Assert rule coverage per A9 spec (>=3 dep rules, >=2 exclusions, >=2 trim restrictions)
 			const totalDependencies = options.reduce(

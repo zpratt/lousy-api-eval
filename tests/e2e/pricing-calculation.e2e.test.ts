@@ -61,10 +61,10 @@ describe("pricing calculation", () => {
 		categoryId = (
 			await expectStatus<{ id: string }>(
 				await createOptionCategory(baseUrl, {
-					name: "Technology",
+					name: chance.word(),
 				}),
 				201,
-				"Create Technology category for pricing tests",
+				"Create option category for pricing tests",
 			)
 		).id;
 	});
