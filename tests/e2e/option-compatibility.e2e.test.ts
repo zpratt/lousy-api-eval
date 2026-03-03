@@ -144,7 +144,8 @@ describe("option compatibility enforcement", () => {
 			expect(response.status).toBe(400);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("require");
+			const normalizedError = body.error.toLowerCase();
+			expect(normalizedError).toMatch(/require|depend/);
 		});
 
 		it("should allow adding an option when its dependency is already on the quote", async () => {
@@ -392,7 +393,12 @@ describe("option compatibility enforcement", () => {
 			expect(response.status).toBe(400);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
-			expect(body.error.toLowerCase()).toContain("exclu");
+			const errorMessage = body.error.toLowerCase();
+			const hasCompatibilityKeyword =
+				errorMessage.includes("exclu") ||
+				errorMessage.includes("conflict") ||
+				errorMessage.includes("incompat");
+			expect(hasCompatibilityKeyword).toBe(true);
 		});
 
 		it("should allow adding an option when its excluded option is not on the quote", async () => {

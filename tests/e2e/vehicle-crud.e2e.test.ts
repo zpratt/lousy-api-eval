@@ -48,12 +48,12 @@ describe("vehicle and option CRUD", () => {
 			expect(Array.isArray(vehicles)).toBe(true);
 			expect(vehicles.length).toBeGreaterThanOrEqual(2);
 
-			// Each seeded vehicle should have multiple trims
+			// Each seeded vehicle should have at least 3 trims (per A9 spec)
 			for (const vehicle of vehicles.slice(0, 2)) {
 				const trimsRes = await listTrims(baseUrl, vehicle.id);
 				expect(trimsRes.status).toBe(200);
 				const trims = await trimsRes.json();
-				expect(trims.length).toBeGreaterThanOrEqual(2);
+				expect(trims.length).toBeGreaterThanOrEqual(3);
 				for (const trim of trims) {
 					expect(trim.vehicleId).toBe(vehicle.id);
 					expect(trim.msrp).toBeGreaterThan(0);
