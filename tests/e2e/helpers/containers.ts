@@ -115,6 +115,6 @@ export async function teardownTestInfrastructure(
 	}
 
 	if (errors.length > 0) {
-		throw errors[0];
+		throw new AggregateError(errors, "Teardown failed for one or more resources");
 	}
 }
