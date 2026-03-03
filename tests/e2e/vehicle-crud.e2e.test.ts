@@ -37,6 +37,54 @@ describe("vehicle and option CRUD", () => {
 		await teardownTestInfrastructure(infra);
 	});
 
+	describe("seed data quality (A9)", () => {
+		it("should start with at least 2 seeded vehicles, each with multiple trims", async () => {
+			// Act
+			const vehiclesRes = await listVehicles(baseUrl);
+
+			// Assert — API should include realistic seed data
+			expect(vehiclesRes.status).toBe(200);
+			const vehicles = await vehiclesRes.json();
+			expect(Array.isArray(vehicles)).toBe(true);
+			expect(vehicles.length).toBeGreaterThanOrEqual(2);
+
+			// Each seeded vehicle should have multiple trims
+			for (const vehicle of vehicles.slice(0, 2)) {
+				const trimsRes = await listTrims(baseUrl, vehicle.id);
+				expect(trimsRes.status).toBe(200);
+				const trims = await trimsRes.json();
+				expect(trims.length).toBeGreaterThanOrEqual(2);
+				for (const trim of trims) {
+					expect(trim.vehicleId).toBe(vehicle.id);
+					expect(trim.msrp).toBeGreaterThan(0);
+				}
+			}
+		});
+
+		it("should start with seeded option categories and options", async () => {
+			// Act
+			const categoriesRes = await listOptionCategories(baseUrl);
+			const optionsRes = await listOptions(baseUrl);
+
+			// Assert — API should seed categories and options
+			expect(categoriesRes.status).toBe(200);
+			const categories = await categoriesRes.json();
+			expect(categories.length).toBeGreaterThanOrEqual(3);
+
+			expect(optionsRes.status).toBe(200);
+			const options = await optionsRes.json();
+			expect(options.length).toBeGreaterThanOrEqual(10);
+
+			// Every option should reference a valid category
+			const categoryIds = new Set(
+				categories.map((c: { id: string }) => c.id),
+			);
+			for (const option of options) {
+				expect(categoryIds.has(option.categoryId)).toBe(true);
+			}
+		});
+	});
+
 	describe("vehicles", () => {
 		it("should create a vehicle and return it with an id", async () => {
 			// Arrange

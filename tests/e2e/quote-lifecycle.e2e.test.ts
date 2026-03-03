@@ -158,6 +158,9 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(
+				/transition|cannot|invalid|not allowed/,
+			);
 		});
 
 		it("should reject transitioning from draft directly to expired", async () => {
@@ -173,6 +176,9 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(
+				/transition|cannot|invalid|not allowed/,
+			);
 		});
 
 		it("should reject transitioning from accepted to any other status", async () => {
@@ -202,6 +208,9 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(
+				/transition|cannot|invalid|not allowed/,
+			);
 		});
 
 		it("should reject transitioning from expired to any other status", async () => {
@@ -231,6 +240,9 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(
+				/transition|cannot|invalid|not allowed|expired/,
+			);
 		});
 	});
 
@@ -333,6 +345,7 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toContain("draft");
 		});
 
 		it("should reject removing options from a presented quote", async () => {
@@ -425,6 +438,7 @@ describe("quote status lifecycle", () => {
 			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toContain("draft");
 		});
 	});
 

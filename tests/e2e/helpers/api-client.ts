@@ -182,10 +182,12 @@ export function calculateQuote(
 	return request(baseUrl, "POST", `/quotes/${quoteId}/calculate`);
 }
 
+export type QuoteStatus = "draft" | "presented" | "accepted" | "expired";
+
 export function transitionQuote(
 	baseUrl: string,
 	quoteId: string,
-	payload: { status: string },
+	payload: { status: QuoteStatus },
 ): Promise<Response> {
 	return request(
 		baseUrl,

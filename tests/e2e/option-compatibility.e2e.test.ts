@@ -260,6 +260,7 @@ describe("option compatibility enforcement", () => {
 			expect(response.status).toBe(400);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(/require|depend/);
 		});
 
 		it("should allow adding option C when both A and B are already on the quote", async () => {
@@ -474,6 +475,7 @@ describe("option compatibility enforcement", () => {
 			expect(response.status).toBe(400);
 			const body = await response.json();
 			expect(body.error).toBeDefined();
+			expect(body.error.toLowerCase()).toMatch(/trim|restrict|available/);
 		});
 
 		it("should allow adding a trim-restricted option when the quote trim is in the allowed list", async () => {

@@ -98,7 +98,23 @@ export async function teardownTestInfrastructure(
 	infra: TestInfrastructure | undefined,
 ): Promise<void> {
 	if (!infra) return;
-	await infra.appContainer?.stop();
-	await infra.dbContainer?.stop();
-	await infra.network?.stop();
+
+	const errors: unknown[] = [];
+
+	for (const resource of [
+		infra.appContainer,
+		infra.dbContainer,
+		infra.network,
+	]) {
+		if (!resource) continue;
+		try {
+			await resource.stop();
+		} catch (error) {
+			errors.push(error);
+		}
+	}
+
+	if (errors.length > 0) {
+		throw errors[0];
+	}
 }
