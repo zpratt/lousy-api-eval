@@ -453,7 +453,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
+			await expectStatus<unknown>(
+				response,
+				201,
+				"Allow adding option B when excluded option A is not on the quote",
+			);
 		});
 	});
 
@@ -529,7 +533,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
+			await expectStatus<unknown>(
+				response,
+				201,
+				"Allow adding trim-restricted option when quote trim is in the allowed list",
+			);
 		});
 
 		it("should allow adding an option with no trim restrictions to any trim", async () => {
@@ -561,7 +569,11 @@ describe("option compatibility enforcement", () => {
 			});
 
 			// Assert
-			expect(response.status).toBe(201);
+			await expectStatus<unknown>(
+				response,
+				201,
+				"Allow adding unrestricted option to any trim",
+			);
 		});
 	});
 

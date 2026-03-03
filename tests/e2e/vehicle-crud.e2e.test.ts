@@ -186,7 +186,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await getVehicle(baseUrl, fakeId);
 
 			// Assert
-			expect(response.status).toBe(404);
+			await expectStatus<Record<string, unknown>>(
+				response,
+				404,
+				"Get non-existent vehicle returns 404",
+			);
 		});
 	});
 
@@ -597,7 +601,11 @@ describe("vehicle and option CRUD", () => {
 			const response = await getQuote(baseUrl, fakeId);
 
 			// Assert
-			expect(response.status).toBe(404);
+			await expectStatus<Record<string, unknown>>(
+				response,
+				404,
+				"Get non-existent quote by id",
+			);
 		});
 	});
 });
