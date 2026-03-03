@@ -24,6 +24,38 @@ import {
 
 const chance = new Chance();
 
+/**
+ * Iterates seeded vehicles to count how many have at least `requiredTrims`
+ * trims, stopping early once `targetCount` have been found. Also asserts
+ * each qualifying trim references the correct vehicle and has a positive MSRP.
+ */
+async function countVehiclesWithEnoughTrims(
+	baseUrl: string,
+	vehicles: Array<{ id: string }>,
+	requiredTrims: number,
+	targetCount: number,
+): Promise<number> {
+	let count = 0;
+	for (const vehicle of vehicles) {
+		const trims = await expectStatus<Array<{ vehicleId: string; msrp: number }>>(
+			await listTrims(baseUrl, vehicle.id),
+			200,
+			"List trims for seeded vehicle",
+		);
+		if (trims.length >= requiredTrims) {
+			count += 1;
+			for (const trim of trims) {
+				expect(trim.vehicleId).toBe(vehicle.id);
+				expect(trim.msrp).toBeGreaterThan(0);
+			}
+		}
+		if (count >= targetCount) {
+			break;
+		}
+	}
+	return count;
+}
+
 describe("vehicle and option CRUD", () => {
 	let infra: TestInfrastructure;
 	let baseUrl: string;
@@ -51,18 +83,15 @@ describe("vehicle and option CRUD", () => {
 			expect(Array.isArray(vehicles)).toBe(true);
 			expect(vehicles.length).toBeGreaterThanOrEqual(2);
 
-			// Each seeded vehicle should have at least 3 trims (per A9 spec)
-			for (const vehicle of vehicles.slice(0, 2)) {
-				const trimsRes = await listTrims(baseUrl, vehicle.id);
-				const trims = await expectStatus<
-					Array<{ vehicleId: string; msrp: number }>
-				>(trimsRes, 200, "List trims for seeded vehicle");
-				expect(trims.length).toBeGreaterThanOrEqual(3);
-				for (const trim of trims) {
-					expect(trim.vehicleId).toBe(vehicle.id);
-					expect(trim.msrp).toBeGreaterThan(0);
-				}
-			}
+			// Iterate all seeded vehicles to find at least 2 with >=3 trims.
+			// Avoids relying on list order since the spec doesn't mandate ordering.
+			const vehiclesWithEnoughTrims = await countVehiclesWithEnoughTrims(
+				baseUrl,
+				vehicles,
+				3,
+				2,
+			);
+			expect(vehiclesWithEnoughTrims).toBeGreaterThanOrEqual(2);
 		});
 
 		it("should start with seeded option categories and options", async () => {

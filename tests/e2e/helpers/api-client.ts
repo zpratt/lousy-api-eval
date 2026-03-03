@@ -26,10 +26,12 @@ export async function expectStatus<T = unknown>(
 ): Promise<T> {
 	const bodyText = await response.text();
 	let body: unknown;
+	let jsonParseError: unknown;
 	try {
 		body = JSON.parse(bodyText);
-	} catch {
+	} catch (err) {
 		body = bodyText;
+		jsonParseError = err;
 	}
 
 	if (response.status !== expectedStatus) {
@@ -39,6 +41,18 @@ export async function expectStatus<T = unknown>(
 				: JSON.stringify(body, null, 2);
 		throw new Error(
 			`[${context}] Expected HTTP ${expectedStatus} but received ${response.status}\nResponse body:\n${detail}`,
+		);
+	}
+
+	// Status matched but body is not valid JSON — fail loudly so callers don't
+	// accidentally treat a raw string as a parsed object.
+	if (jsonParseError !== undefined) {
+		const message =
+			jsonParseError instanceof Error
+				? jsonParseError.message
+				: String(jsonParseError);
+		throw new Error(
+			`[${context}] Expected JSON response body but failed to parse: ${message}\nRaw body:\n${bodyText}`,
 		);
 	}
 

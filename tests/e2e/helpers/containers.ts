@@ -9,28 +9,12 @@ import {
 const APP_PORT = 3000;
 const DB_PORT = 5432;
 
-const APP_IMAGE_NAME = "lousy-api-eval-test:latest";
-let cachedImageName: string | undefined;
-let imagePromise: Promise<string> | undefined;
-
-async function ensureAppImageBuilt(): Promise<string> {
-	if (cachedImageName) {
-		return cachedImageName;
-	}
-
-	if (!imagePromise) {
-		imagePromise = (async () => {
-			await GenericContainer.fromDockerfile(".").build(APP_IMAGE_NAME);
-			cachedImageName = APP_IMAGE_NAME;
-			return APP_IMAGE_NAME;
-		})().catch((error) => {
-			imagePromise = undefined;
-			throw error;
-		});
-	}
-
-	return imagePromise;
-}
+/**
+ * The Docker image tag used for the application under test.
+ * Built once in the Vitest global setup (tests/e2e/global-setup.ts) so that
+ * every worker can start a container without triggering a redundant rebuild.
+ */
+export const APP_IMAGE_NAME = "lousy-api-eval-test:latest";
 
 export interface TestInfrastructure {
 	network: StartedNetwork;
@@ -58,8 +42,7 @@ export async function startPostgres(
 export async function startApp(
 	network: StartedNetwork,
 ): Promise<StartedTestContainer> {
-	const imageName = await ensureAppImageBuilt();
-	return new GenericContainer(imageName)
+	return new GenericContainer(APP_IMAGE_NAME)
 		.withNetwork(network)
 		.withExposedPorts(APP_PORT)
 		.withEnvironment({
