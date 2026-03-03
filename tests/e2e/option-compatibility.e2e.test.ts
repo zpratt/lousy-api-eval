@@ -394,11 +394,7 @@ describe("option compatibility enforcement", () => {
 			const body = await response.json();
 			expect(body.error).toBeDefined();
 			const errorMessage = body.error.toLowerCase();
-			const hasCompatibilityKeyword =
-				errorMessage.includes("exclu") ||
-				errorMessage.includes("conflict") ||
-				errorMessage.includes("incompat");
-			expect(hasCompatibilityKeyword).toBe(true);
+			expect(errorMessage).toMatch(/exclu|conflict|incompat/);
 		});
 
 		it("should allow adding an option when its excluded option is not on the quote", async () => {
