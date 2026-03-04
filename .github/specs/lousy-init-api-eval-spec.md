@@ -140,6 +140,23 @@ Use TypeScript with Fastify. A PostgreSQL database is available. If you use a pe
 - Is the quote status lifecycle enforced at the API level (can't add options to a non-draft quote)?
 - Is the seed data realistic and internally consistent (no options that both require and exclude each other, trim restrictions make sense)?
 
+**Floating-point precision:**
+- JavaScript uses IEEE 754 double-precision floating-point for all numbers, which causes precision errors in decimal arithmetic (e.g., `0.1 + 0.2 !== 0.3`). In a pricing system, this compounds across percentage-based option calculations and package discounts.
+- Does the implementation mitigate this via integer-cent arithmetic, a decimal library (decimal.js, big.js, dinero.js), or consistent rounding at calculation boundaries?
+- Raw floating-point math with no mitigation is a defect in a quoting system.
+
+**Input validation & security (score only what's present — do not penalize for absent features like auth that the prompt didn't request):**
+- Are route inputs validated and sanitized before processing? (parameter types, string lengths, numeric bounds, enum values for status transitions)
+- If using PostgreSQL, are queries parameterized or is there raw string concatenation (SQL injection risk)?
+- Does the API accept `req.body` and spread it directly into data operations (mass assignment), or does it whitelist specific fields?
+- Do error responses leak internal implementation details (stack traces, raw SQL errors, file paths)?
+
+**Day 2 operational readiness (is this code ready to run and maintain in production?):**
+- Is there a health check endpoint?
+- Is logging structured (e.g., pino, winston with JSON output) rather than raw `console.log`?
+- Is configuration externalized (DB connection strings, port, expiration windows via environment variables), or are values hardcoded?
+- Does the application handle graceful shutdown (SIGTERM, closing DB connections)?
+
 ---
 
 ## Task B — Expansion: Manufacturer Incentive Programs
@@ -230,6 +247,22 @@ A PostgreSQL database is available. If you use a persistent data store, use Post
 - Is the breakdown fully itemized (base, options, packages, destination, each program)?
 - Does the what-if endpoint return useful information (which programs qualify, what the discount would be) without mutating state?
 
+**Floating-point precision:**
+- Do incentive calculations compound precision errors from Task A? Percentage discounts on base MSRP, category-specific percentage discounts, and the stacking cap calculation all introduce additional floating-point operations.
+- Is the same precision strategy from Task A carried through, or did the expansion introduce inconsistent arithmetic?
+- Does the exclusive program comparison ("largest dollar discount wins") produce correct results when comparing values with floating-point imprecision?
+
+**Input validation & security (score only what's present — do not penalize for absent features like auth that the prompt didn't request):**
+- Are the new incentive program endpoints validated? (date ranges, benefit types, rule type enums, numeric bounds on discount values)
+- If Postgres, are the new queries parameterized?
+- Can a caller create incentive rules with arbitrary or malformed rule types that crash the evaluator?
+- Do error responses from incentive evaluation leak internal state?
+
+**Day 2 operational readiness:**
+- Did the expansion maintain or degrade Task A's operational patterns (logging, config, health)?
+- Is incentive program evaluation observable? (Can you tell from logs which programs were evaluated, which qualified, and why others didn't?)
+- Are effective date ranges handled with timezone awareness, or will programs activate/expire at unpredictable times?
+
 ---
 
 ## Evaluation Scorecard
@@ -240,7 +273,7 @@ Score each run on the following items. Use a simple scale:
 - **1** = Present but flawed (partially works, poor design, or brittle)
 - **2** = Solid (correct, reasonably well-designed)
 
-### Task A Scorecard (22 points max)
+### Task A Scorecard (28 points max)
 
 | #  | Dimension                        | Question                                                                                         | Score |
 |----|----------------------------------|--------------------------------------------------------------------------------------------------|-------|
@@ -255,8 +288,11 @@ Score each run on the following items. Use a simple scale:
 | A9 | Seed data quality                | Is seed data realistic, internally consistent, and does it cover the required rules?             |       |
 | A10| Error messages                   | Do compatibility violations return specific, useful error messages (not generic 400s)?           |       |
 | A11| Separation of concerns           | Is business logic (pricing, rules) separated from route handling?                                |       |
+| A12| Floating-point precision         | Does the pricing pipeline handle monetary arithmetic safely (integer cents, decimal library, or consistent rounding)? Raw floating-point with no mitigation is a 0. |       |
+| A13| Input validation & security      | Are inputs validated/sanitized? No SQL injection vectors, no mass assignment, no stack trace leakage in error responses. Score only what the prompt asked for — do not penalize absent auth/rate-limiting. |       |
+| A14| Day 2 operational readiness      | Is the code ready to run in production? (health check endpoint, structured logging, externalized configuration, graceful shutdown) |       |
 
-### Task B Scorecard (24 points max)
+### Task B Scorecard (30 points max)
 
 | #  | Dimension                        | Question                                                                                         | Score |
 |----|----------------------------------|--------------------------------------------------------------------------------------------------|-------|
@@ -271,7 +307,10 @@ Score each run on the following items. Use a simple scale:
 | B9 | Existing code preserved          | Did the model maintain Task A's architecture and patterns?                                       |       |
 | B10| Integration correctness          | Does pricing still work correctly for options/packages/destination with programs layered on?     |       |
 | B11| Data access strategy             | Is data access appropriate for the complexity? (abstracted repository/service, not raw array operations in handlers; if Postgres, no N+1 or string-concatenated queries) |       |
-| B12| Instruction compliance           | Did the code follow structural/architectural instructions? (N/A if no instructions given)        |       |
+| B12| Floating-point precision         | Does incentive calculation maintain precision? Are percentage discounts, stacking caps, and exclusive-program dollar comparisons handled with the same precision strategy as Task A? |       |
+| B13| Input validation & security      | Are new incentive endpoints validated? Can malformed rule types crash the evaluator? Are new queries parameterized? Score only what the prompt asked for. |       |
+| B14| Day 2 operational readiness      | Did the expansion maintain or degrade Task A's operational patterns? Is incentive evaluation observable via logs? Are date ranges timezone-aware? |       |
+| B15| Instruction compliance           | Did the code follow structural/architectural instructions? (N/A if no instructions given)        |       |
 
 ### Static Analysis Metrics (record per run)
 
@@ -289,11 +328,11 @@ Score each run on the following items. Use a simple scale:
 
 Track everything in a single spreadsheet. One row per run:
 
-| Run | Model     | Instructions | Task | A1 | A2 | ... | A11 | Scorecard Total | any_count | unused_vars | unused_imports | console_logs | param_assigns | max_complexity | funcs_over_10 | Notes           |
+| Run | Model     | Instructions | Task | A1 | A2 | ... | A14 | Scorecard Total | any_count | unused_vars | unused_imports | console_logs | param_assigns | max_complexity | funcs_over_10 | Notes           |
 |-----|-----------|-------------|------|----|----| --- |-----|-----------------|-----------|-------------|----------------|--------------|---------------|----------------|---------------|-----------------|
-| 1   | codex-5.2 | none        | A    | 1  | 2  |     |     | 14              | 12        | 3           | 1              | 8            | 2             | 35             | 4             | Hardcoded rules |
-| 2   | codex-5.2 | v1          | A    | 2  | 2  |     |     | 19              | 3         | 0           | 0              | 0            | 0             | 12             | 1             | Much better     |
-| 3   | codex-5.2 | none        | B    | 0  | 0  |     |     | 10              | 18        | 5           | 3              | 12           | 4             | 42             | 6             | Rewrote Task A  |
+| 1   | codex-5.2 | none        | A    | 1  | 2  |     |     | 16              | 12        | 3           | 1              | 8            | 2             | 35             | 4             | Hardcoded rules |
+| 2   | codex-5.2 | v1          | A    | 2  | 2  |     |     | 24              | 3         | 0           | 0              | 0            | 0             | 12             | 1             | Much better     |
+| 3   | codex-5.2 | none        | B    | 0  | 0  |     |     | 12              | 18        | 5           | 3              | 12           | 4             | 42             | 6             | Rewrote Task A  |
 
 ### Interpreting Results
 
@@ -302,6 +341,19 @@ Track everything in a single spreadsheet. One row per run:
 - **Model comparison** = Compare models with the same instruction set. Shows which model is most responsive to guidance.
 - **Expansion quality** = B9 and B10 are the key items. If these score low, the model is not good at extending existing code regardless of instructions.
 - **Instruction refinement signal** = Look at which items score low even WITH instructions. That tells you what your instructions need to be more explicit about in the next iteration.
+
+**Floating-point precision signals:**
+- A12 is a leading indicator for Task B problems. If the model uses raw floating-point math in Task A, incentive stacking in Task B will compound the errors. A 0 on A12 predicts trouble for B12.
+- If A12 scores 1-2 but B12 scores 0, the model introduced a different arithmetic approach for incentive calculations than it used for option pricing — a consistency failure.
+
+**Security signals:**
+- A13 and B13 reveal whether the model thinks about evil paths at all. Most LLM-generated code is optimized for happy paths. Common failures: accepting full `req.body` without whitelisting fields, string-concatenating SQL, and returning raw error objects that expose internals.
+- A low A13 that doesn't improve with instructions suggests the model doesn't associate security with REST API development unless explicitly told.
+
+**Day 2 operational readiness signals:**
+- A14 differentiates "demo code" from "production code." Models that include health checks, structured logging, externalized config, and graceful shutdown are producing code that could actually be deployed and maintained. Models that skip all of these are producing code that works in a test but would require significant rework to operate.
+- B14 specifically tests whether the expansion degraded operational patterns. A common failure: Task A uses structured logging, but Task B reverts to `console.log` for the new incentive endpoints.
+- `console_logs` from static analysis directly cross-references with A14/B14. High counts contradict a high operational readiness score.
 
 **Static analysis signals:**
 - **`any_count`** should drop significantly with good instructions. If it doesn't, your instructions need explicit type safety guidance.
