@@ -199,7 +199,7 @@ Required endpoints (use these exact paths):
 
 Seed the application with at least 3 incentive programs: one exclusive, two non-exclusive, with overlapping eligibility so stacking logic is exercised.
 
-A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Maintain the existing code patterns and architecture. Do not restructure or rewrite existing functionality.
+A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Maintain the existing code patterns and architecture. Do not rewrite existing business logic or endpoint behavior. If the existing code lacks a data access abstraction layer, you may introduce one and refactor existing code to use it, but the external API behavior must not change.
 ```
 
 ### What you're looking for (don't share this with the model)
