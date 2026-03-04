@@ -125,7 +125,7 @@ Required routes (use these exact paths):
 
 Seed the application with realistic sample data for at least 2 vehicle models (e.g., a midsize sedan and a full-size truck), each with 3 trim levels and 10+ options across categories. Include at least 3 dependency rules, 2 exclusion rules, and 2 trim restriction rules.
 
-Use TypeScript with Express. A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Include error handling that returns meaningful messages when compatibility rules are violated.
+Use TypeScript with Fastify. A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Include error handling that returns meaningful messages when compatibility rules are violated.
 ```
 
 ### What you're looking for (don't share this with the model)
