@@ -125,7 +125,7 @@ Required routes (use these exact paths):
 
 Seed the application with realistic sample data for at least 2 vehicle models (e.g., a midsize sedan and a full-size truck), each with 3 trim levels and 10+ options across categories. Include at least 3 dependency rules, 2 exclusion rules, and 2 trim restriction rules.
 
-Use TypeScript with Express. Include error handling that returns meaningful messages when compatibility rules are violated.
+Use TypeScript with Express. A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Include error handling that returns meaningful messages when compatibility rules are violated.
 ```
 
 ### What you're looking for (don't share this with the model)
@@ -199,7 +199,7 @@ Required endpoints (use these exact paths):
 
 Seed the application with at least 3 incentive programs: one exclusive, two non-exclusive, with overlapping eligibility so stacking logic is exercised.
 
-Maintain the existing code patterns and architecture. Do not restructure or rewrite existing functionality.
+A PostgreSQL database is available. If you use a persistent data store, use PostgreSQL. Maintain the existing code patterns and architecture. Do not restructure or rewrite existing functionality.
 ```
 
 ### What you're looking for (don't share this with the model)
@@ -220,6 +220,11 @@ Maintain the existing code patterns and architecture. Do not restructure or rewr
 - Did the model preserve the existing architecture, or did it restructure Task A's code?
 - Does the pricing calculation now incorporate programs without breaking the original option/package/destination pricing logic?
 - Is the quote status lifecycle still enforced (can't apply programs to a non-draft quote)?
+
+**Data access maturity:**
+- Is data access abstracted behind a repository or service layer, or are raw queries / in-memory array operations tangled directly into route handlers and business logic?
+- If using in-memory storage, is the abstraction clean enough that swapping in Postgres later would be straightforward?
+- If using Postgres, are queries well-structured (not N+1, not raw string concatenation)?
 
 **Pricing breakdown:**
 - Is the breakdown fully itemized (base, options, packages, destination, each program)?
@@ -251,7 +256,7 @@ Score each run on the following items. Use a simple scale:
 | A10| Error messages                   | Do compatibility violations return specific, useful error messages (not generic 400s)?           |       |
 | A11| Separation of concerns           | Is business logic (pricing, rules) separated from route handling?                                |       |
 
-### Task B Scorecard (22 points max)
+### Task B Scorecard (24 points max)
 
 | #  | Dimension                        | Question                                                                                         | Score |
 |----|----------------------------------|--------------------------------------------------------------------------------------------------|-------|
@@ -265,7 +270,8 @@ Score each run on the following items. Use a simple scale:
 | B8 | What-if endpoint                 | Does the simulation endpoint return useful detail without mutating state?                        |       |
 | B9 | Existing code preserved          | Did the model maintain Task A's architecture and patterns?                                       |       |
 | B10| Integration correctness          | Does pricing still work correctly for options/packages/destination with programs layered on?     |       |
-| B11| Instruction compliance           | Did the code follow structural/architectural instructions? (N/A if no instructions given)        |       |
+| B11| Data access strategy             | Is data access appropriate for the complexity? (abstracted repository/service, not raw array operations in handlers; if Postgres, no N+1 or string-concatenated queries) |       |
+| B12| Instruction compliance           | Did the code follow structural/architectural instructions? (N/A if no instructions given)        |       |
 
 ### Static Analysis Metrics (record per run)
 
